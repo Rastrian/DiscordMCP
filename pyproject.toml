@@ -1,0 +1,59 @@
+[project]
+name = "discord-mcp-platform"
+version = "0.1.0"
+description = "A Discord MCP control plane for bot-powered Discord server management and automation."
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi[standard]>=0.115.0",
+  "itsdangerous>=2.1.0",
+  "uvicorn[standard]>=0.30.0",
+  "pydantic>=2.8.0",
+  "pydantic-settings>=2.4.0",
+  "httpx>=0.27.0",
+  "structlog>=24.0.0",
+  "sqlalchemy>=2.0.0",
+  "alembic>=1.13.0",
+  "psycopg[binary]>=3.2.0",
+  "redis>=5.0.0",
+  "mcp>=1.0.0",
+  "websockets>=12.0",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.0.0",
+  "pytest-asyncio>=0.23.0",
+  "ruff>=0.6.0",
+  "mypy>=1.11.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+mypy_path = "src"
+disable_error_code = [
+    "type-arg",
+    "no-untyped-def",
+    "no-any-return",
+    "untyped-decorator",
+    "no-untyped-call",
+    "assignment",
+    "return-value",
+    "attr-defined",
+    "union-attr",
+    "arg-type",
+    "misc",
+    "call-arg",
+    "unused-ignore",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"

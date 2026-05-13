@@ -1,0 +1,40 @@
+services:
+  api:
+    build: .
+    container_name: discord-mcp-platform-api
+    env_file:
+      - .env
+    environment:
+      PYTHONPATH: /app/src
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+      - ./alembic:/app/alembic
+      - ./pyproject.toml:/app/pyproject.toml
+    depends_on:
+      - db
+      - redis
+    command: uv run uvicorn discord_mcp_platform.app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  db:
+    image: postgres:16
+    container_name: discord-mcp-platform-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: discord_mcp_platform
+    ports:
+      - "5432:5432"
+    volumes:
+      - discord_mcp_platform_pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    container_name: discord-mcp-platform-redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  discord_mcp_platform_pgdata:
