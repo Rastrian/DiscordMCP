@@ -424,6 +424,11 @@ TOOL_DEFINITIONS = [
                     "description": "Temporary membership. Default false.",
                     "default": False,
                 },
+                "roles": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Array of role IDs to grant on join (Community guilds only).",
+                },
             },
             "required": ["channel_id"],
         },
@@ -1382,12 +1387,15 @@ async def _execute_tool_once(name: str, tool_input: dict, bot: BotRuntime) -> di
         for key in ("max_uses", "max_age", "temporary"):
             if key in tool_input:
                 kwargs[key] = tool_input[key]
+        if "roles" in tool_input:
+            kwargs["role_ids"] = tool_input["roles"]
         invite = await bot.create_invite(tool_input["channel_id"], **kwargs)
         return {
             "success": True,
             "status": "created",
             "code": invite.code,
             "channel_id": invite.channel_id,
+            "roles": tool_input.get("roles"),
         }
 
     if name == "delete_invite":

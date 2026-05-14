@@ -25,19 +25,26 @@ class InviteService:
         scopes: str,
         dry_run: bool = True,
         confirmation: str | None = None,
+        roles: list[str] | None = None,
         **kwargs,
     ) -> dict:
         self._permissions.check_write(scopes, "channel")
         self._permissions.check_dangerous_operation("invite.create", dry_run, confirmation)
         await check_discord_permission(self._bot, guild_id, "invite.create")
         if dry_run:
-            return {"status": "validated", "dry_run": True, "channel_id": channel_id}
-        invite = await self._bot.create_invite(channel_id, **kwargs)
+            return {
+                "status": "validated",
+                "dry_run": True,
+                "channel_id": channel_id,
+                "roles": roles,
+            }
+        invite = await self._bot.create_invite(channel_id, role_ids=roles, **kwargs)
         return {
             "status": "created",
             "dry_run": False,
             "code": invite.code,
             "channel_id": invite.channel_id,
+            "roles": roles,
         }
 
     async def list_invites(self, guild_id: str, scopes: str) -> list[dict]:

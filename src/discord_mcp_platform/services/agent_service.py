@@ -214,7 +214,11 @@ class AgentService:
     async def _call_llm(self, channel_id: str, guild_id: str = "") -> str | None:
         messages = self._get_history(channel_id)
 
+        from datetime import datetime, timezone
+
         system_prompt = self._system_prompt
+        now = datetime.now(timezone.utc)
+        system_prompt += f"\n\nCurrent date and time (UTC): {now.strftime('%Y-%m-%d %H:%M:%S')}. Always use future dates for scheduling."
         if guild_id:
             system_prompt += f"\n\nContext: guild_id={guild_id}, channel_id={channel_id}. Always use this guild_id when tools require it. Never ask the user for guild_id."
 

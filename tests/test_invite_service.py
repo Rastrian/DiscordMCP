@@ -33,6 +33,8 @@ def invite_service(mock_bot, permissions):
 
 CHANNEL_ID = "234567890123456789"
 GUILD_ID = "123456789012345678"
+ROLE_1 = "111111111111111111"
+ROLE_2 = "222222222222222222"
 
 
 @patch("discord_mcp_platform.services.invite_service.check_discord_permission")
@@ -67,7 +69,61 @@ async def test_create_invite_non_dry_run(mock_check, invite_service, mock_bot):
     assert result["dry_run"] is False
     assert result["code"] == "abc123"
     assert result["channel_id"] == CHANNEL_ID
-    mock_bot.create_invite.assert_called_once_with(CHANNEL_ID)
+    mock_bot.create_invite.assert_called_once_with(CHANNEL_ID, role_ids=None)
+
+
+@patch("discord_mcp_platform.services.invite_service.check_discord_permission")
+async def test_create_invite_with_roles_dry_run(mock_check, invite_service, mock_bot):
+    result = await invite_service.create_invite(
+        CHANNEL_ID,
+        GUILD_ID,
+        scopes="channel:write",
+        dry_run=True,
+        roles=[ROLE_1, ROLE_2],
+    )
+    assert result["status"] == "validated"
+    assert result["dry_run"] is True
+    assert result["roles"] == [ROLE_1, ROLE_2]
+    mock_bot.create_invite.assert_not_called()
+
+
+@patch("discord_mcp_platform.services.invite_service.check_discord_permission")
+async def test_create_invite_with_roles_non_dry_run(mock_check, invite_service, mock_bot):
+    mock_bot.create_invite.return_value = DiscordInvite(
+        code="abc123",
+        channel_id=CHANNEL_ID,
+        guild_id=GUILD_ID,
+    )
+    result = await invite_service.create_invite(
+        CHANNEL_ID,
+        GUILD_ID,
+        scopes="channel:write",
+        dry_run=False,
+        confirmation="yes",
+        roles=[ROLE_1, ROLE_2],
+    )
+    assert result["status"] == "created"
+    assert result["dry_run"] is False
+    assert result["roles"] == [ROLE_1, ROLE_2]
+    mock_bot.create_invite.assert_called_once_with(CHANNEL_ID, role_ids=[ROLE_1, ROLE_2])
+
+
+@patch("discord_mcp_platform.services.invite_service.check_discord_permission")
+async def test_create_invite_without_roles(mock_check, invite_service, mock_bot):
+    mock_bot.create_invite.return_value = DiscordInvite(
+        code="abc123",
+        channel_id=CHANNEL_ID,
+        guild_id=GUILD_ID,
+    )
+    result = await invite_service.create_invite(
+        CHANNEL_ID,
+        GUILD_ID,
+        scopes="channel:write",
+        dry_run=False,
+        confirmation="yes",
+    )
+    assert result["roles"] is None
+    mock_bot.create_invite.assert_called_once_with(CHANNEL_ID, role_ids=None)
 
 
 @patch("discord_mcp_platform.services.invite_service.check_discord_permission")
