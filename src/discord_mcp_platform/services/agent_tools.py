@@ -444,6 +444,74 @@ TOOL_DEFINITIONS = [
             "required": ["code"],
         },
     },
+    # ── Webhooks ──
+    {
+        "name": "create_webhook",
+        "description": "Create a webhook in a channel. Requires MANAGE_WEBHOOKS permission.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "channel_id": {
+                    "type": "string",
+                    "description": "The channel to create the webhook in.",
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Name of the webhook (max 80 chars).",
+                },
+            },
+            "required": ["channel_id", "name"],
+        },
+    },
+    {
+        "name": "list_webhooks",
+        "description": "List all webhooks in a guild.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "guild_id": {"type": "string"},
+            },
+            "required": ["guild_id"],
+        },
+    },
+    {
+        "name": "get_webhook",
+        "description": "Get a webhook by ID.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "webhook_id": {"type": "string"},
+            },
+            "required": ["webhook_id"],
+        },
+    },
+    {
+        "name": "modify_webhook",
+        "description": "Modify an existing webhook.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "webhook_id": {"type": "string"},
+                "name": {"type": "string", "description": "New name for the webhook."},
+                "channel_id": {
+                    "type": "string",
+                    "description": "Move webhook to a different channel.",
+                },
+            },
+            "required": ["webhook_id"],
+        },
+    },
+    {
+        "name": "delete_webhook",
+        "description": "Delete a webhook.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "webhook_id": {"type": "string"},
+            },
+            "required": ["webhook_id"],
+        },
+    },
     # ── Guild ──
     {
         "name": "get_guild",
@@ -1401,6 +1469,59 @@ async def _execute_tool_once(name: str, tool_input: dict, bot: BotRuntime) -> di
     if name == "delete_invite":
         await bot.delete_invite(tool_input["code"])
         return {"success": True, "status": "deleted", "code": tool_input["code"]}
+
+    # ── Webhooks ──
+    if name == "create_webhook":
+        data = await bot.create_webhook(tool_input["channel_id"], tool_input["name"])
+        return {
+            "success": True,
+            "status": "created",
+            "webhook_id": data["id"],
+            "name": data.get("name", tool_input["name"]),
+            "channel_id": data.get("channel_id", tool_input["channel_id"]),
+            "token": data.get("token", ""),
+        }
+
+    if name == "list_webhooks":
+        webhooks = await bot.list_webhooks(tool_input["guild_id"])
+        return {
+            "success": True,
+            "webhooks": [
+                {
+                    "id": w.get("id", ""),
+                    "name": w.get("name", ""),
+                    "channel_id": w.get("channel_id", ""),
+                }
+                for w in webhooks
+            ],
+        }
+
+    if name == "get_webhook":
+        webhook = await bot.get_webhook(tool_input["webhook_id"])
+        return {
+            "success": True,
+            "id": webhook.id,
+            "name": webhook.name,
+            "channel_id": webhook.channel_id,
+            "token": getattr(webhook, "token", ""),
+        }
+
+    if name == "modify_webhook":
+        kwargs = {}
+        for key in ("name", "channel_id"):
+            if key in tool_input:
+                kwargs[key] = tool_input[key]
+        webhook = await bot.modify_webhook(tool_input["webhook_id"], **kwargs)
+        return {
+            "success": True,
+            "status": "updated",
+            "webhook_id": webhook.id,
+            "name": webhook.name,
+        }
+
+    if name == "delete_webhook":
+        await bot.delete_webhook(tool_input["webhook_id"])
+        return {"success": True, "status": "deleted", "webhook_id": tool_input["webhook_id"]}
 
     # ── Guild ──
     if name == "get_guild":
