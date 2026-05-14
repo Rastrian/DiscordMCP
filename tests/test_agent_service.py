@@ -138,6 +138,8 @@ async def test_handle_message_responds(agent, mock_bot):
         "stop_reason": "end_turn",
     }
 
+    mock_bot.send_message.return_value = MagicMock(id="msg_123")
+
     with patch.object(agent, "_get_http_client") as mock_client_factory:
         mock_client = AsyncMock()
         mock_client.post = AsyncMock(return_value=mock_response)
@@ -145,7 +147,10 @@ async def test_handle_message_responds(agent, mock_bot):
 
         await agent.handle_message(event)
 
-    mock_bot.send_message.assert_called_once_with("333333333333333333", "2+2 equals 4!")
+    # Sends "Thinking..." then edits with the actual response
+    mock_bot.send_message.assert_called_once_with("333333333333333333", "Thinking...")
+    mock_bot.edit_message.assert_called_once_with("333333333333333333", "msg_123", "2+2 equals 4!")
+    mock_bot.add_reaction.assert_any_call("333333333333333333", "555555555555555555", "✅")
 
 
 async def test_handle_message_no_mention_ignored(agent, mock_bot):
@@ -157,6 +162,8 @@ async def test_handle_message_no_mention_ignored(agent, mock_bot):
 async def test_handle_message_llm_error_no_crash(agent, mock_bot):
     event = _make_message("<@111111111111111111> hello")
 
+    mock_bot.send_message.return_value = MagicMock(id="msg_placeholder")
+
     with patch.object(agent, "_get_http_client") as mock_client_factory:
         mock_client = AsyncMock()
         mock_client.post = AsyncMock(return_value=MagicMock(status_code=500, text="error"))
@@ -164,7 +171,9 @@ async def test_handle_message_llm_error_no_crash(agent, mock_bot):
 
         await agent.handle_message(event)
 
-    mock_bot.send_message.assert_not_called()
+    # On error: placeholder is deleted, ❌ reaction added
+    mock_bot.delete_message.assert_called_once_with("333333333333333333", "msg_placeholder")
+    mock_bot.add_reaction.assert_any_call("333333333333333333", "555555555555555555", "❌")
 
 
 async def test_handle_message_truncates_long_response(agent, mock_bot):
@@ -178,6 +187,8 @@ async def test_handle_message_truncates_long_response(agent, mock_bot):
         "stop_reason": "end_turn",
     }
 
+    mock_bot.send_message.return_value = MagicMock(id="msg_123")
+
     with patch.object(agent, "_get_http_client") as mock_client_factory:
         mock_client = AsyncMock()
         mock_client.post = AsyncMock(return_value=mock_response)
@@ -185,8 +196,8 @@ async def test_handle_message_truncates_long_response(agent, mock_bot):
 
         await agent.handle_message(event)
 
-    sent_content = mock_bot.send_message.call_args[0][1]
-    assert len(sent_content) <= 2000
+    edited_content = mock_bot.edit_message.call_args[0][2]
+    assert len(edited_content) <= 2000
 
 
 async def test_history_is_maintained(agent, mock_bot):

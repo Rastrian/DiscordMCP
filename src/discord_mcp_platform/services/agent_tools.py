@@ -512,6 +512,26 @@ TOOL_DEFINITIONS = [
             "required": ["webhook_id"],
         },
     },
+    {
+        "name": "execute_webhook",
+        "description": "Send a message through a webhook. Supports embeds. Use the webhook_id and token returned by create_webhook.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "webhook_id": {"type": "string", "description": "The webhook ID."},
+                "webhook_token": {"type": "string", "description": "The webhook token."},
+                "content": {"type": "string", "description": "Plain text content."},
+                "embeds": {
+                    "type": "array",
+                    "items": {"type": "object"},
+                    "description": "Array of embed objects (title, description, color, fields, etc).",
+                },
+                "username": {"type": "string", "description": "Override the webhook username."},
+                "avatar_url": {"type": "string", "description": "Override the webhook avatar."},
+            },
+            "required": ["webhook_id", "webhook_token"],
+        },
+    },
     # ── Guild ──
     {
         "name": "get_guild",
@@ -522,6 +542,73 @@ TOOL_DEFINITIONS = [
                 "guild_id": {"type": "string"},
             },
             "required": ["guild_id"],
+        },
+    },
+    {
+        "name": "send_embed_message",
+        "description": "Send a rich embed message directly to a Discord channel. ALWAYS use this tool when the user wants embeds or formatted messages. Do NOT create webhooks just to send embeds. Do NOT output raw embed JSON in your text response. Call this tool with the embeds array and it will be sent immediately. Supports content, embeds with title/description/color/fields/footer/thumbnail/image.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "channel_id": {
+                    "type": "string",
+                    "description": "The channel to send the message to.",
+                },
+                "content": {
+                    "type": "string",
+                    "description": "Optional plain text content above the embeds.",
+                },
+                "embeds": {
+                    "type": "array",
+                    "description": "Array of embed objects.",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "title": {"type": "string"},
+                            "description": {"type": "string"},
+                            "url": {"type": "string"},
+                            "color": {"type": "integer", "description": "Decimal color value."},
+                            "fields": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "name": {"type": "string"},
+                                        "value": {"type": "string"},
+                                        "inline": {"type": "boolean"},
+                                    },
+                                    "required": ["name", "value"],
+                                },
+                            },
+                            "footer": {
+                                "type": "object",
+                                "properties": {
+                                    "text": {"type": "string"},
+                                    "icon_url": {"type": "string"},
+                                },
+                            },
+                            "thumbnail": {
+                                "type": "object",
+                                "properties": {"url": {"type": "string"}},
+                            },
+                            "image": {
+                                "type": "object",
+                                "properties": {"url": {"type": "string"}},
+                            },
+                            "author": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {"type": "string"},
+                                    "url": {"type": "string"},
+                                    "icon_url": {"type": "string"},
+                                },
+                            },
+                            "timestamp": {"type": "string"},
+                        },
+                    },
+                },
+            },
+            "required": ["channel_id", "embeds"],
         },
     },
     {
@@ -1522,6 +1609,33 @@ async def _execute_tool_once(name: str, tool_input: dict, bot: BotRuntime) -> di
     if name == "delete_webhook":
         await bot.delete_webhook(tool_input["webhook_id"])
         return {"success": True, "status": "deleted", "webhook_id": tool_input["webhook_id"]}
+
+    if name == "execute_webhook":
+        kwargs = {}
+        for key in ("content", "embeds", "username", "avatar_url"):
+            if key in tool_input:
+                kwargs[key] = tool_input[key]
+        data = await bot.execute_webhook(
+            tool_input["webhook_id"], tool_input["webhook_token"], **kwargs
+        )
+        return {
+            "success": True,
+            "status": "sent",
+            "message_id": data.get("id", ""),
+        }
+
+    if name == "send_embed_message":
+        data = await bot.send_rich_message(
+            tool_input["channel_id"],
+            content=tool_input.get("content"),
+            embeds=tool_input["embeds"],
+        )
+        return {
+            "success": True,
+            "status": "sent",
+            "message_id": data.id,
+            "channel_id": data.channel_id,
+        }
 
     # ── Guild ──
     if name == "get_guild":

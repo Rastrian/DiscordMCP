@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from discord_mcp_platform.app.logging import get_logger
 from discord_mcp_platform.discord.models import (
+    DiscordMessage,
     MessageListRecentInput,
     MessageListRecentOutput,
     MessageSendInput,
@@ -82,3 +83,17 @@ class MessageService:
             "message_id": msg.id,
             "content_length": len(msg.content),
         }
+
+    async def send_embed(
+        self,
+        channel_id: str,
+        content: str | None = None,
+        embeds: list[dict] | None = None,
+        scopes: str = "message:write",
+    ) -> DiscordMessage:
+        self._permissions.check_write(scopes, "message")
+        if not self._permissions.check_channel_allowed(channel_id):
+            from discord_mcp_platform.errors import PolicyDeniedError
+
+            raise PolicyDeniedError(f"channel {channel_id} is not allowed")
+        return await self._bot.send_rich_message(channel_id, content=content, embeds=embeds)

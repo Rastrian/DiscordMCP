@@ -338,6 +338,33 @@ class MessageBulkDeleteInput(BaseModel):
     confirmation: str | None = None
 
 
+class MessageSendEmbedInput(BaseModel):
+    guild_id: str = Field(pattern=r"^[0-9]{15,25}$")
+    channel_id: str = Field(pattern=r"^[0-9]{15,25}$")
+    content: str | None = None
+    embeds: list[dict] = Field(min_length=1, max_length=10)
+    dry_run: bool = True
+    confirmation: str | None = None
+
+
+class MessageSendEmbedOutput(BaseModel):
+    status: str
+    dry_run: bool
+    message_id: str | None = None
+
+
+class ReactionAddInput(BaseModel):
+    channel_id: str = Field(pattern=r"^[0-9]{15,25}$")
+    message_id: str = Field(pattern=r"^[0-9]{15,25}$")
+    emoji: str = Field(min_length=1, max_length=100)
+
+
+class ReactionRemoveInput(BaseModel):
+    channel_id: str = Field(pattern=r"^[0-9]{15,25}$")
+    message_id: str = Field(pattern=r"^[0-9]{15,25}$")
+    emoji: str = Field(min_length=1, max_length=100)
+
+
 class ThreadCreateInput(BaseModel):
     guild_id: str = Field(pattern=r"^[0-9]{15,25}$")
     channel_id: str = Field(pattern=r"^[0-9]{15,25}$")

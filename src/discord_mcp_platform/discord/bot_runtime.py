@@ -141,8 +141,27 @@ class BotRuntime:
             timestamp=data.get("timestamp", ""),
         )
 
-    async def edit_message(self, channel_id: str, message_id: str, content: str) -> DiscordMessage:
-        data = await self._rest_client.edit_message(channel_id, message_id, content)
+    async def send_rich_message(
+        self, channel_id: str, content: str | None = None, embeds: list[dict] | None = None
+    ) -> DiscordMessage:
+        data = await self._rest_client.send_rich_message(channel_id, content, embeds)
+        return DiscordMessage(
+            id=data["id"],
+            channel_id=channel_id,
+            author_id=data["author"]["id"],
+            author_name=data["author"].get("global_name") or data["author"].get("username", ""),
+            content=data.get("content", ""),
+            timestamp=data.get("timestamp", ""),
+        )
+
+    async def edit_message(
+        self,
+        channel_id: str,
+        message_id: str,
+        content: str | None = None,
+        embeds: list[dict] | None = None,
+    ) -> DiscordMessage:
+        data = await self._rest_client.edit_message(channel_id, message_id, content, embeds)
         return DiscordMessage(
             id=data["id"],
             channel_id=channel_id,
