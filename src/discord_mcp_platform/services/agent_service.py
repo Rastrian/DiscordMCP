@@ -20,6 +20,7 @@ from discord_mcp_platform.services.agent_tools import (
     execute_tool,
     MAX_TOOL_ITERATIONS,
 )
+from discord_mcp_platform.discord.models import DiscordMessage
 
 if TYPE_CHECKING:
     from discord_mcp_platform.discord.bot_runtime import BotRuntime
@@ -186,28 +187,65 @@ class AgentService:
         author_name = author.get("global_name") or author.get("username", "User")
         self._add_to_history(channel_id, "user", f"{author_name}: {user_message}")
 
+        message_id = event.get("id", "")
+
+        # Acknowledge receipt
+        placeholder: DiscordMessage | None = None
+        try:
+            if message_id:
+                await self._bot.add_reaction(channel_id, message_id, "👀")
+            placeholder = await self._bot.send_message(channel_id, "Thinking...")
+        except Exception as e:
+            log.warning("agent_acknowledge_error", error=str(e), channel_id=channel_id)
+
         lock = self._get_lock(channel_id)
         async with lock:
             try:
                 response_text = await self._call_llm(channel_id, guild_id)
             except Exception as e:
                 log.error("agent_llm_error", error=str(e), channel_id=channel_id)
+                await self._finalize(channel_id, message_id, placeholder, None)
                 return
 
         if not response_text:
+            await self._finalize(channel_id, message_id, placeholder, None)
             return
 
         self._add_to_history(channel_id, "assistant", response_text)
         self._mark_cooldown(user_id)
 
-        if len(response_text) > 2000:
-            response_text = response_text[:1997] + "..."
+        await self._finalize(channel_id, message_id, placeholder, response_text)
+        log.info("agent_responded", channel_id=channel_id, user_id=user_id)
 
+    async def _finalize(
+        self,
+        channel_id: str,
+        user_message_id: str,
+        placeholder: DiscordMessage | None,
+        response_text: str | None,
+    ) -> None:
         try:
-            await self._bot.send_message(channel_id, response_text)
-            log.info("agent_responded", channel_id=channel_id, user_id=user_id)
+            if placeholder:
+                if response_text:
+                    if len(response_text) > 2000:
+                        response_text = response_text[:1997] + "..."
+                    await self._bot.edit_message(channel_id, placeholder.id, response_text)
+                else:
+                    await self._bot.delete_message(channel_id, placeholder.id)
+            elif response_text:
+                if len(response_text) > 2000:
+                    response_text = response_text[:1997] + "..."
+                await self._bot.send_message(channel_id, response_text)
+
+            if user_message_id:
+                try:
+                    await self._bot.remove_reaction(channel_id, user_message_id, "👀")
+                except Exception:
+                    pass
+                emoji = "✅" if response_text else "❌"
+                await self._bot.add_reaction(channel_id, user_message_id, emoji)
         except Exception as e:
-            log.error("agent_send_error", error=str(e), channel_id=channel_id)
+            log.error("agent_finalize_error", error=str(e), channel_id=channel_id)
 
     # --- LLM API call with tool-use loop ---
 

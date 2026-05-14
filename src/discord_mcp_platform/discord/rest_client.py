@@ -63,9 +63,30 @@ class DiscordRestClient:
             "POST", f"/channels/{channel_id}/messages", json={"content": content}
         )
 
-    async def edit_message(self, channel_id: str, message_id: str, content: str) -> dict:
+    async def send_rich_message(
+        self, channel_id: str, content: str | None = None, embeds: list[dict] | None = None
+    ) -> dict:
+        body: dict = {}
+        if content:
+            body["content"] = content
+        if embeds:
+            body["embeds"] = embeds
+        return await self._request("POST", f"/channels/{channel_id}/messages", json=body)
+
+    async def edit_message(
+        self,
+        channel_id: str,
+        message_id: str,
+        content: str | None = None,
+        embeds: list[dict] | None = None,
+    ) -> dict:
+        body: dict = {}
+        if content is not None:
+            body["content"] = content
+        if embeds is not None:
+            body["embeds"] = embeds
         return await self._request(
-            "PATCH", f"/channels/{channel_id}/messages/{message_id}", json={"content": content}
+            "PATCH", f"/channels/{channel_id}/messages/{message_id}", json=body
         )
 
     async def delete_message(self, channel_id: str, message_id: str) -> None:

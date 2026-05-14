@@ -13,6 +13,8 @@ from mcp.types import Tool, TextContent
 from discord_mcp_platform.discord.models import (
     MessageListRecentInput,
     MessageSendInput,
+    MessageSendEmbedInput,
+    MessageSendEmbedOutput,
     MessageGetInput,
     MessageEditInput,
 )
@@ -42,11 +44,16 @@ def get_tools() -> list[Tool]:
             description="Edit a message in a Discord channel. Defaults to dry-run mode.",
             inputSchema=MessageEditInput.model_json_schema(),
         ),
+        Tool(
+            name="discord.message.send_embed",
+            description="Send a rich embed message to a Discord channel. Defaults to dry-run mode.",
+            inputSchema=MessageSendEmbedInput.model_json_schema(),
+        ),
     ]
 
 
 def get_handler(
-    message_service: MessageService, audit: AuditService
+    message_service: MessageService, audit: AuditService, bot=None
 ) -> Callable[[str, dict], Awaitable[list[TextContent] | None]]:
     async def handle(name: str, arguments: dict) -> list[TextContent] | None:
         if name == "discord.message.list_recent":
@@ -113,6 +120,38 @@ def get_handler(
                 },
             )
             return [TextContent(type="text", text=json.dumps(result))]
+
+        if name == "discord.message.send_embed":
+            input_data = MessageSendEmbedInput.model_validate(arguments)
+            if input_data.dry_run:
+                result = MessageSendEmbedOutput(status="validated", dry_run=True, message_id=None)
+                await audit.record(
+                    workspace_id="system",
+                    action="discord.message.send_embed",
+                    guild_id=input_data.guild_id,
+                    channel_id=input_data.channel_id,
+                    details={"dry_run": True},
+                )
+                return [TextContent(type="text", text=result.model_dump_json())]
+            msg = await message_service.send_embed(
+                input_data.channel_id,
+                content=input_data.content,
+                embeds=input_data.embeds,
+                scopes="message:write",
+            )
+            await audit.record(
+                workspace_id="system",
+                action="discord.message.send_embed",
+                guild_id=input_data.guild_id,
+                channel_id=input_data.channel_id,
+                details={"dry_run": False, "embed_count": len(input_data.embeds)},
+            )
+            return [
+                TextContent(
+                    type="text",
+                    text=json.dumps({"status": "sent", "dry_run": False, "message_id": msg.id}),
+                )
+            ]
 
         return None
 

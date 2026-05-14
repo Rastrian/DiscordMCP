@@ -149,6 +149,7 @@ def create_mcp_server(bot: BotRuntime) -> Server:
         moderation_service=moderation_svc,
         webhook_service=webhook_svc,
         invite_service=invite_svc,
+        bot=bot,
     )
     register_all_resources(server, bot)
     register_all_prompts(server)
