@@ -15,7 +15,7 @@ dependencies = [
   "alembic>=1.13.0",
   "psycopg[binary]>=3.2.0",
   "redis>=5.0.0",
-  "mcp>=1.0.0",
+  "mcp>=1.28.1",
   "websockets>=12.0",
 ]
 
