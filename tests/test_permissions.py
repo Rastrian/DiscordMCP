@@ -18,7 +18,11 @@ from discord_mcp_platform.discord.permissions import (
     compute_permissions_from_roles,
     has_permission,
 )
-from discord_mcp_platform.errors import AuthorizationError, DiscordPermissionError, PolicyDeniedError
+from discord_mcp_platform.errors import (
+    AuthorizationError,
+    DiscordPermissionError,
+    PolicyDeniedError,
+)
 from discord_mcp_platform.security.policy import PermissionService
 
 
