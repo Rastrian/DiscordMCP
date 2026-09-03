@@ -100,7 +100,7 @@ def get_handler(
         if name == "discord.webhook.get":
             guild_id = arguments["guild_id"]
             webhook_id = arguments["webhook_id"]
-            result = await webhook_service.get_webhook(guild_id, webhook_id, scopes="channel:read")
+            result = await webhook_service.get_webhook(webhook_id, guild_id, scopes="channel:read")
             await audit.record(
                 workspace_id="system",
                 action="discord.webhook.get",

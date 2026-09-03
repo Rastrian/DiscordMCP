@@ -20,6 +20,7 @@ DANGEROUS_OPERATIONS: frozenset[str] = frozenset(
         "role.remove",
         "role.create",
         "role.modify",
+        "role.reorder",
         "role.delete",
         "member.timeout",
         "member.ban",
@@ -43,6 +44,8 @@ DANGEROUS_OPERATIONS: frozenset[str] = frozenset(
         "automod.delete",
         "message.pin",
         "message.unpin",
+        "reaction.add",
+        "reaction.remove",
         "reaction.remove_user",
         "guild.incident_actions",
     }

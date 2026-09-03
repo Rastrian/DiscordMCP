@@ -160,11 +160,27 @@ async def test_reorder_roles(mock_check, role_service, mock_bot):
         {"id": "111111111111111111", "position": 0},
         {"id": "222222222222222222", "position": 1},
     ]
+    result = await role_service.reorder_roles(
+        "123456789012345678",
+        positions,
+        scopes="role:write",
+        dry_run=False,
+        confirmation="confirm",
+    )
+    assert result["status"] == "reordered"
+    assert len(result["roles"]) == 2
+    assert result["roles"][0]["role_id"] == "111111111111111111"
+    assert result["roles"][0]["name"] == "Admin"
+    assert result["roles"][0]["position"] == 0
+
+
+@patch("discord_mcp_platform.services.role_service.check_discord_permission")
+async def test_reorder_roles_dry_run_does_not_call_bot(mock_check, role_service, mock_bot):
+    positions = [{"id": "111111111111111111", "position": 0}]
     result = await role_service.reorder_roles("123456789012345678", positions, scopes="role:write")
-    assert len(result) == 2
-    assert result[0]["role_id"] == "111111111111111111"
-    assert result[0]["name"] == "Admin"
-    assert result[0]["position"] == 0
-    assert result[1]["role_id"] == "222222222222222222"
-    assert result[1]["position"] == 1
-    mock_bot.reorder_roles.assert_called_once_with("123456789012345678", positions)
+    assert result == {
+        "status": "validated",
+        "dry_run": True,
+        "guild_id": "123456789012345678",
+    }
+    mock_bot.reorder_roles.assert_not_called()

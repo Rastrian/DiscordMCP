@@ -104,8 +104,22 @@ class RoleService:
         await self._bot.delete_role(guild_id, role_id)
         return {"status": "deleted", "dry_run": False, "role_id": role_id}
 
-    async def reorder_roles(self, guild_id: str, positions: list[dict], scopes: str) -> list[dict]:
+    async def reorder_roles(
+        self,
+        guild_id: str,
+        positions: list[dict],
+        scopes: str,
+        dry_run: bool = True,
+        confirmation: str | None = None,
+    ) -> dict:
         self._permissions.check_write(scopes, "role")
+        self._permissions.check_dangerous_operation("role.reorder", dry_run, confirmation)
         await check_discord_permission(self._bot, guild_id, "role.modify")
+        if dry_run:
+            return {"status": "validated", "dry_run": True, "guild_id": guild_id}
         roles = await self._bot.reorder_roles(guild_id, positions)
-        return [{"role_id": r.id, "name": r.name, "position": r.position} for r in roles]
+        return {
+            "status": "reordered",
+            "dry_run": False,
+            "roles": [{"role_id": r.id, "name": r.name, "position": r.position} for r in roles],
+        }

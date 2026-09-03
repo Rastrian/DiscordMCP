@@ -108,8 +108,17 @@ class MessageService:
 
     # --- Reactions ---
 
-    async def add_reaction(self, channel_id: str, message_id: str, emoji: str, scopes: str) -> dict:
+    async def add_reaction(
+        self,
+        channel_id: str,
+        message_id: str,
+        emoji: str,
+        scopes: str,
+        dry_run: bool = True,
+        confirmation: str | None = None,
+    ) -> dict:
         self._permissions.check_write(scopes, "message")
+        self._permissions.check_dangerous_operation("reaction.add", dry_run, confirmation)
         if not self._permissions.check_channel_allowed(channel_id):
             from discord_mcp_platform.errors import PolicyDeniedError
 
@@ -118,9 +127,16 @@ class MessageService:
         return {"status": "reacted", "emoji": emoji}
 
     async def remove_reaction(
-        self, channel_id: str, message_id: str, emoji: str, scopes: str
+        self,
+        channel_id: str,
+        message_id: str,
+        emoji: str,
+        scopes: str,
+        dry_run: bool = True,
+        confirmation: str | None = None,
     ) -> dict:
         self._permissions.check_write(scopes, "message")
+        self._permissions.check_dangerous_operation("reaction.remove", dry_run, confirmation)
         if not self._permissions.check_channel_allowed(channel_id):
             from discord_mcp_platform.errors import PolicyDeniedError
 
