@@ -1,0 +1,18 @@
+# Development overrides, merged automatically by `docker compose up`.
+# - mounts the source tree (PYTHONPATH=/app/src takes precedence over the
+#   packaged copy in the venv, so edits are picked up without rebuilding);
+# - runs uvicorn with --reload;
+# - mounts alembic for running migrations inside the container.
+services:
+  api:
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+      - ./alembic:/app/alembic
+      - ./alembic.ini:/app/alembic.ini
+    environment:
+      PYTHONPATH: /app/src
+    command: >
+      uvicorn discord_mcp_platform.app.main:app
+      --host 0.0.0.0 --port 8000
+      --reload --reload-dir /app/src

@@ -1,4 +1,4 @@
-.PHONY: install dev test lint typecheck format up down
+.PHONY: install dev test lint typecheck format up down version release-check
 
 install:
 	uv sync
@@ -17,6 +17,12 @@ format:
 
 typecheck:
 	uv run mypy src
+
+version:
+	uv run python -c "from discord_mcp_platform._version import __version__; print(__version__)"
+
+# Everything that must pass before tagging a release.
+release-check: lint typecheck test
 
 up:
 	docker compose up --build

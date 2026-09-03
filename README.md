@@ -174,9 +174,52 @@ make test       # run tests (no real Discord token needed)
 make lint       # ruff check
 make format     # ruff format
 make typecheck  # mypy
-make up         # docker compose up --build
+make version    # print the current version
+make up         # docker compose up --build (dev: source mounted, auto-reload)
 make down       # docker compose down
 ```
+
+`docker compose up` automatically merges `docker-compose.override.yml`, which mounts
+the source tree and enables `--reload`. For a production-like run without dev
+conveniences: `docker compose -f docker-compose.yml up --build`.
+
+## Releases & Versioning
+
+The version lives in exactly one place: `src/discord_mcp_platform/_version.py`.
+`pyproject.toml` declares `dynamic = ["version"]` and hatchling reads it from there;
+the FastAPI app and `/health` report the same value.
+
+To cut a release:
+
+```bash
+# 1. Bump the version and refresh the committed lockfile
+$EDITOR src/discord_mcp_platform/_version.py   # __version__ = "0.2.0"
+uv lock
+make release-check                             # tests + lint + mypy
+
+# 2. Commit and tag
+git add src/discord_mcp_platform/_version.py uv.lock
+git commit -m "chore(release): v0.2.0"
+git tag v0.2.0
+git push origin main --tags
+```
+
+Pushing a `v*` tag triggers [`.github/workflows/release.yml`](.github/workflows/release.yml), which:
+
+1. runs the test suite, ruff and mypy;
+2. fails if the tag does not match `__version__` (or the lockfile is stale);
+3. builds and pushes `ghcr.io/rastrian/discord-mcp-platform` with tags `<version>`, `<major>.<minor>` and `latest` — pre-release tags (e.g. `v1.2.0-rc1`) only get the full version tag, never the rolling ones;
+4. creates a GitHub Release with auto-generated notes.
+
+The recommended way to deploy (e.g. the k3s cluster) is to pin the versioned image:
+
+```text
+ghcr.io/rastrian/discord-mcp-platform:0.2.0   # exact pin
+ghcr.io/rastrian/discord-mcp-platform:0.2     # track patch releases
+```
+
+The image is multi-stage, runs as a non-root user, and serves `/health` for probes.
+Currently `linux/amd64` only (`arm64` is a follow-up).
 
 ## Environment Variables
 

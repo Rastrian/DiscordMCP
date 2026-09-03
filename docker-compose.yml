@@ -1,22 +1,19 @@
+# Production-like stack: runs the packaged app from the image (no code mounts,
+# no reload). Docker Compose merges docker-compose.override.yml automatically
+# when present, which re-enables source mounts and --reload for development.
+# For a production-like run without the dev overrides:
+#   docker compose -f docker-compose.yml up --build
 services:
   api:
     build: .
     container_name: discord-mcp-platform-api
     env_file:
       - .env
-    environment:
-      PYTHONPATH: /app/src
     ports:
       - "8000:8000"
-    volumes:
-      - ./src:/app/src
-      - ./tests:/app/tests
-      - ./alembic:/app/alembic
-      - ./pyproject.toml:/app/pyproject.toml
     depends_on:
       - db
       - redis
-    command: uv run uvicorn discord_mcp_platform.app.main:app --host 0.0.0.0 --port 8000 --reload
 
   db:
     image: postgres:16

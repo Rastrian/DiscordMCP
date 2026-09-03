@@ -8,6 +8,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 from sqlalchemy import text
 
+from discord_mcp_platform._version import __version__
 from discord_mcp_platform.app.lifecycle import engine
 from discord_mcp_platform.app.logging import get_logger
 from discord_mcp_platform.app.settings import settings
@@ -30,7 +31,7 @@ async def _get_redis():
 
 @router.get("/health")
 async def health():
-    return {"status": "ok", "service": "discord-mcp-platform", "version": "0.1.0"}
+    return {"status": "ok", "service": "discord-mcp-platform", "version": __version__}
 
 
 @router.get("/health/ready")
