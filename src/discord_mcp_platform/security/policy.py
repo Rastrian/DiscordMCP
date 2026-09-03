@@ -35,6 +35,16 @@ DANGEROUS_OPERATIONS: frozenset[str] = frozenset(
         "invite.delete",
         "automation.change",
         "thread.create",
+        "event.create",
+        "event.update",
+        "event.delete",
+        "automod.create",
+        "automod.update",
+        "automod.delete",
+        "message.pin",
+        "message.unpin",
+        "reaction.remove_user",
+        "guild.incident_actions",
     }
 )
 

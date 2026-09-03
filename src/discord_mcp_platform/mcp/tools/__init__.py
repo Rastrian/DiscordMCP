@@ -16,6 +16,8 @@ from discord_mcp_platform.services.member_service import MemberService
 from discord_mcp_platform.services.moderation_service import ModerationService
 from discord_mcp_platform.services.webhook_service import WebhookService
 from discord_mcp_platform.services.invite_service import InviteService
+from discord_mcp_platform.services.event_service import EventService
+from discord_mcp_platform.services.automod_service import AutomodService
 
 from discord_mcp_platform.discord.bot_runtime import BotRuntime
 
@@ -67,6 +69,14 @@ from discord_mcp_platform.mcp.tools.reactions import (
     get_tools as reaction_tools,
     get_handler as reaction_handler,
 )
+from discord_mcp_platform.mcp.tools.events import (
+    get_tools as event_tools,
+    get_handler as event_handler,
+)
+from discord_mcp_platform.mcp.tools.automod import (
+    get_tools as automod_tools,
+    get_handler as automod_handler,
+)
 
 
 def register_all_tools(
@@ -83,6 +93,8 @@ def register_all_tools(
     moderation_service: ModerationService,
     webhook_service: WebhookService,
     invite_service: InviteService,
+    event_service: EventService,
+    automod_service: AutomodService,
     bot: BotRuntime,
 ) -> None:
     tool_defs: list[Tool] = [
@@ -98,6 +110,8 @@ def register_all_tools(
         *invite_tools(),
         *audit_tools(),
         *reaction_tools(),
+        *event_tools(),
+        *automod_tools(),
     ]
 
     handlers: list[Callable[[str, dict], Awaitable[list[TextContent] | None]]] = [
@@ -112,7 +126,9 @@ def register_all_tools(
         webhook_handler(webhook_service, audit_service),
         invite_handler(invite_service, audit_service),
         audit_handler(audit_service),
-        reaction_handler(bot, audit_service),
+        reaction_handler(message_service, audit_service),
+        event_handler(event_service, audit_service),
+        automod_handler(automod_service, audit_service),
     ]
 
     @server.list_tools()

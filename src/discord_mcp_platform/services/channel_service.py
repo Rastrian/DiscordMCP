@@ -165,3 +165,71 @@ class ChannelService:
             "channel_id": channel_id,
             "overwrite_id": overwrite_id,
         }
+
+    # --- Pins ---
+
+    async def list_pins(self, channel_id: str, scopes: str) -> list[dict]:
+        self._permissions.check_read(scopes, "message")
+        if not self._permissions.check_channel_allowed(channel_id):
+            from discord_mcp_platform.errors import PolicyDeniedError
+
+            raise PolicyDeniedError(f"channel {channel_id} is not allowed")
+        return await self._bot.list_pinned_messages(channel_id)
+
+    async def pin_message(
+        self,
+        channel_id: str,
+        message_id: str,
+        scopes: str,
+        dry_run: bool = True,
+        confirmation: str | None = None,
+    ) -> dict:
+        self._permissions.check_write(scopes, "message")
+        self._permissions.check_dangerous_operation("message.pin", dry_run, confirmation)
+        if not self._permissions.check_channel_allowed(channel_id):
+            from discord_mcp_platform.errors import PolicyDeniedError
+
+            raise PolicyDeniedError(f"channel {channel_id} is not allowed")
+        if dry_run:
+            return {
+                "status": "validated",
+                "dry_run": True,
+                "channel_id": channel_id,
+                "message_id": message_id,
+            }
+        await self._bot.pin_message(channel_id, message_id)
+        return {
+            "status": "pinned",
+            "dry_run": False,
+            "channel_id": channel_id,
+            "message_id": message_id,
+        }
+
+    async def unpin_message(
+        self,
+        channel_id: str,
+        message_id: str,
+        scopes: str,
+        dry_run: bool = True,
+        confirmation: str | None = None,
+    ) -> dict:
+        self._permissions.check_write(scopes, "message")
+        self._permissions.check_dangerous_operation("message.unpin", dry_run, confirmation)
+        if not self._permissions.check_channel_allowed(channel_id):
+            from discord_mcp_platform.errors import PolicyDeniedError
+
+            raise PolicyDeniedError(f"channel {channel_id} is not allowed")
+        if dry_run:
+            return {
+                "status": "validated",
+                "dry_run": True,
+                "channel_id": channel_id,
+                "message_id": message_id,
+            }
+        await self._bot.unpin_message(channel_id, message_id)
+        return {
+            "status": "unpinned",
+            "dry_run": False,
+            "channel_id": channel_id,
+            "message_id": message_id,
+        }
