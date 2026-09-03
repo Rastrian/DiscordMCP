@@ -66,8 +66,8 @@ graph LR
 graph LR
     subgraph "MCP Tools by Domain"
         G["Guild<br/>4 tools"]
-        CH["Channel<br/>10 tools"]
-        MSG["Message<br/>5 tools"]
+        CH["Channel<br/>7 tools"]
+        MSG["Message<br/>7 tools"]
         MOD["Moderation<br/>2 tools"]
         THR["Thread<br/>1 tool"]
         ROLE["Role<br/>7 tools"]
@@ -85,8 +85,8 @@ graph LR
 | Domain | Tools |
 |--------|-------|
 | Guild | list, get, modify, incident_actions (lockdown) |
-| Channel | list, get, create, edit, delete, edit/delete permissions |
-| Message | list_recent, send, get, edit |
+| Channel | list, get, create, edit, delete, edit_permissions, delete_permissions |
+| Message | list_recent, send, get, edit, send_embed, delete, bulk_delete |
 | Moderation | delete, bulk_delete |
 | Thread | create |
 | Role | list, create, modify, delete, reorder, assign, remove |
