@@ -1,0 +1,75 @@
+name: Spec sync
+
+on:
+  schedule:
+    # Saturdays 09:00 UTC == 06:00 America/Sao_Paulo
+    - cron: "0 9 * * 6"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Fetch Discord spec
+        run: scripts/fetch-discord-spec.sh
+
+      - name: Detect spec changes
+        id: changes
+        run: |
+          if git diff --quiet specs/openapi.json; then
+            echo "spec unchanged"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "spec changed"
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Regenerate coverage report
+        if: steps.changes.outputs.changed == 'true'
+        run: python3 scripts/coverage_report.py
+
+      - name: Build PR body
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          {
+            echo "## Discord OpenAPI spec sync ($(date -u +%F))"
+            echo ""
+            echo "Weekly sync from [discord/discord-api-spec](https://github.com/discord/discord-api-spec)."
+            echo ""
+            python3 scripts/coverage_report.py --summary
+            echo ""
+            echo "Review the \`specs/COVERAGE.md\` diff for endpoint-level changes."
+          } > "$RUNNER_TEMP/pr-body.md"
+
+      - name: Open pull request
+        if: steps.changes.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          DATE="$(date -u +%F)"
+          BRANCH="spec-sync/openapi-${DATE}"
+          git config user.name "Rastrian"
+          git config user.email "10719452+Rastrian@users.noreply.github.com"
+          git checkout -b "${BRANCH}"
+          git add specs/
+          git commit \
+            --author="Rastrian <10719452+Rastrian@users.noreply.github.com>" \
+            -m "chore(spec): sync Discord OpenAPI spec ${DATE}"
+          # Automation-owned branch: force push makes same-day re-runs idempotent.
+          git push --force origin "${BRANCH}"
+          gh pr create \
+            --base main \
+            --head "${BRANCH}" \
+            --title "chore(spec): sync Discord OpenAPI spec ${DATE}" \
+            --body-file "$RUNNER_TEMP/pr-body.md" \
+            || echo "PR already open for ${BRANCH}"

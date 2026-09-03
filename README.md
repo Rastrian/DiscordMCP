@@ -32,7 +32,7 @@ graph TD
         GW["Discord Gateway<br/>WebSocket"]
         PE["Policy Engine"]
         AGENT["Agent Service<br/>~60 tools"]
-        SVC["Discord Service Layer<br/>50+ REST methods"]
+        SVC["Discord Service Layer<br/>107 async REST methods"]
     end
 
     AI -->|MCP call| MCPS
@@ -189,6 +189,19 @@ make down       # docker compose down
 `docker compose up` automatically merges `docker-compose.override.yml`, which mounts
 the source tree and enables `--reload`. For a production-like run without dev
 conveniences: `docker compose -f docker-compose.yml up --build`.
+
+## Spec Coverage
+
+The official [Discord OpenAPI spec](https://github.com/discord/discord-api-spec) is vendored at
+`specs/openapi.json` and treated as the source of truth for endpoint coverage.
+
+- [`specs/COVERAGE.md`](specs/COVERAGE.md) — generated report comparing spec endpoints with the
+  REST client and MCP tools (regenerate with `python3 scripts/coverage_report.py`).
+- `scripts/fetch-discord-spec.sh` — refreshes the vendored spec.
+- [Spec sync](.github/workflows/spec-sync.yml) — weekly workflow (Saturdays 09:00 UTC) that opens
+  a PR whenever Discord publishes spec changes.
+- `python3 scripts/coverage_report.py --check` — regression guard: fails if the number of
+  in-scope implemented endpoints drops below the baseline in `specs/.coverage-baseline`.
 
 ## Releases & Versioning
 

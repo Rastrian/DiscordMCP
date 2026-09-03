@@ -241,6 +241,13 @@ class RoleDeleteInput(BaseModel):
     confirmation: str | None = None
 
 
+class RoleReorderInput(BaseModel):
+    guild_id: str = Field(pattern=r"^[0-9]{15,25}$")
+    positions: list[dict] = Field(min_length=1)
+    dry_run: bool = True
+    confirmation: str | None = None
+
+
 class RoleAssignInput(BaseModel):
     guild_id: str = Field(pattern=r"^[0-9]{15,25}$")
     user_id: str = Field(pattern=r"^[0-9]{15,25}$")
@@ -371,12 +378,16 @@ class ReactionAddInput(BaseModel):
     channel_id: str = Field(pattern=r"^[0-9]{15,25}$")
     message_id: str = Field(pattern=r"^[0-9]{15,25}$")
     emoji: str = Field(min_length=1, max_length=100)
+    dry_run: bool = True
+    confirmation: str | None = None
 
 
 class ReactionRemoveInput(BaseModel):
     channel_id: str = Field(pattern=r"^[0-9]{15,25}$")
     message_id: str = Field(pattern=r"^[0-9]{15,25}$")
     emoji: str = Field(min_length=1, max_length=100)
+    dry_run: bool = True
+    confirmation: str | None = None
 
 
 class ThreadCreateInput(BaseModel):

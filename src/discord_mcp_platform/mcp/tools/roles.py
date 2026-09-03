@@ -15,6 +15,7 @@ from discord_mcp_platform.discord.models import (
     RoleCreateInput,
     RoleModifyInput,
     RoleDeleteInput,
+    RoleReorderInput,
     RoleAssignInput,
     RoleRemoveInput,
 )
@@ -159,14 +160,19 @@ def get_handler(
             return [TextContent(type="text", text=json.dumps(result))]
 
         if name == "discord.role.reorder":
-            guild_id = arguments["guild_id"]
-            positions = arguments["positions"]
-            result = await role_service.reorder_roles(guild_id, positions, scopes="role:write")
+            input_data = RoleReorderInput.model_validate(arguments)
+            result = await role_service.reorder_roles(
+                input_data.guild_id,
+                input_data.positions,
+                scopes="role:write",
+                dry_run=input_data.dry_run,
+                confirmation=input_data.confirmation,
+            )
             await audit.record(
                 workspace_id="system",
                 action="discord.role.reorder",
-                guild_id=guild_id,
-                details={"count": len(positions)},
+                guild_id=input_data.guild_id,
+                details={"count": len(input_data.positions)},
             )
             return [TextContent(type="text", text=json.dumps(result))]
 

@@ -58,6 +58,8 @@ def get_handler(
                 input_data.message_id,
                 input_data.emoji,
                 scopes="message:write",
+                dry_run=input_data.dry_run,
+                confirmation=input_data.confirmation,
             )
             await audit.record(
                 workspace_id="system",
@@ -75,6 +77,8 @@ def get_handler(
                 input_data.message_id,
                 input_data.emoji,
                 scopes="message:write",
+                dry_run=input_data.dry_run,
+                confirmation=input_data.confirmation,
             )
             await audit.record(
                 workspace_id="system",
