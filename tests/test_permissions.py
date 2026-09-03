@@ -5,9 +5,24 @@
 
 from __future__ import annotations
 
+from unittest.mock import AsyncMock
+
 import pytest
 
-from discord_mcp_platform.errors import AuthorizationError, PolicyDeniedError
+from discord_mcp_platform.discord.bot_runtime import BotRuntime
+from discord_mcp_platform.discord.rest_client import DiscordRestClient
+from discord_mcp_platform.discord.permissions import (
+    ADMINISTRATOR,
+    SEND_MESSAGES,
+    check_discord_permission,
+    compute_permissions_from_roles,
+    has_permission,
+)
+from discord_mcp_platform.errors import (
+    AuthorizationError,
+    DiscordPermissionError,
+    PolicyDeniedError,
+)
 from discord_mcp_platform.security.policy import PermissionService
 
 
@@ -146,3 +161,77 @@ def test_dangerous_operation_member_unban():
     svc.check_dangerous_operation("member.unban", dry_run=False, confirmation="yes")
     with pytest.raises(PolicyDeniedError):
         svc.check_dangerous_operation("member.unban", dry_run=False, confirmation=None)
+
+
+# --- compute_permissions_from_roles ---
+
+GUILD_ROLES = [
+    {"id": "222", "name": "BotRole", "permissions": str(SEND_MESSAGES)},
+    {"id": "111", "name": "@everyone", "permissions": "0"},
+]
+
+
+def test_everyone_role_identified_by_name_not_position():
+    # @everyone is NOT the first role in the list; its perms must still be the base
+    perms = compute_permissions_from_roles([], guild_roles=GUILD_ROLES)
+    assert perms == 0
+
+    guild_roles_everyone_send = [
+        {"id": "222", "name": "BotRole", "permissions": "0"},
+        {"id": "111", "name": "@everyone", "permissions": str(SEND_MESSAGES)},
+    ]
+    perms = compute_permissions_from_roles([], guild_roles=guild_roles_everyone_send)
+    assert has_permission(perms, SEND_MESSAGES)
+
+
+def test_bot_roles_or_ed_on_top_of_everyone_base():
+    perms = compute_permissions_from_roles(["222"], guild_roles=GUILD_ROLES)
+    assert has_permission(perms, SEND_MESSAGES)
+
+
+def test_bot_roles_missing_from_guild_contribute_nothing():
+    perms = compute_permissions_from_roles(["999"], guild_roles=GUILD_ROLES)
+    assert perms == 0
+
+
+def test_owner_returns_administrator():
+    perms = compute_permissions_from_roles([], guild_roles=GUILD_ROLES, is_owner=True)
+    assert perms == ADMINISTRATOR
+
+
+# --- check_discord_permission ---
+
+
+def _permission_bot() -> AsyncMock:
+    bot = AsyncMock(spec=BotRuntime)
+    bot.bot_id = "333333333333333333"
+    bot.rest = AsyncMock(spec=DiscordRestClient)
+    bot.rest.get_guild.return_value = {"owner_id": "111111111111111111"}
+    bot.get_member.return_value = {"roles": ["222"]}
+    bot.list_roles.return_value = GUILD_ROLES
+    return bot
+
+
+async def test_check_discord_permission_grants_when_role_has_permission():
+    bot = _permission_bot()
+    await check_discord_permission(bot, "123456789012345678", "message.send")
+
+
+async def test_check_discord_permission_denies_when_missing():
+    bot = _permission_bot()
+    bot.get_member.return_value = {"roles": []}  # only @everyone (perms 0) applies
+    with pytest.raises(DiscordPermissionError, match="bot lacks permission"):
+        await check_discord_permission(bot, "123456789012345678", "message.send")
+
+
+async def test_check_discord_permission_api_error_fails_closed():
+    bot = _permission_bot()
+    bot.rest.get_guild.side_effect = RuntimeError("discord api down")
+    with pytest.raises(DiscordPermissionError, match="denying message.send"):
+        await check_discord_permission(bot, "123456789012345678", "message.send")
+
+
+async def test_check_discord_permission_unknown_operation_is_noop():
+    bot = _permission_bot()
+    await check_discord_permission(bot, "123456789012345678", "not.a.mapped.operation")
+    bot.rest.get_guild.assert_not_called()

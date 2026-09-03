@@ -110,7 +110,11 @@ async def lifespan(app: FastAPI):
     if settings.discord_bot_token and settings.enable_gateway:
         from discord_mcp_platform.discord.gateway import DiscordGateway
 
-        _gateway = DiscordGateway(settings.discord_bot_token)
+        _gateway_bot = get_bot()
+        _gateway = DiscordGateway(
+            settings.discord_bot_token,
+            rest=_gateway_bot.rest if _gateway_bot is not None else None,
+        )
 
         if settings.database_url and get_bot() is not None:
             from discord_mcp_platform.automations.engine import AutomationEngine

@@ -19,6 +19,7 @@ class _BucketState:
 class RateLimitTracker:
     def __init__(self) -> None:
         self._buckets: dict[str, _BucketState] = {}
+        self._global_reset_at: float = 0.0
 
     def update(self, bucket: str, remaining: int, reset_at: float) -> None:
         self._buckets[bucket] = _BucketState(remaining=remaining, reset_at=reset_at)
@@ -36,4 +37,15 @@ class RateLimitTracker:
         if state is None:
             return 0.0
         remaining = state.reset_at - time.monotonic()
+        return max(0.0, remaining)
+
+    def set_global(self, retry_after: float) -> None:
+        reset_at = time.monotonic() + max(0.0, retry_after)
+        self._global_reset_at = max(self._global_reset_at, reset_at)
+
+    def is_global_limited(self) -> bool:
+        return time.monotonic() < self._global_reset_at
+
+    def global_wait_time(self) -> float:
+        remaining = self._global_reset_at - time.monotonic()
         return max(0.0, remaining)

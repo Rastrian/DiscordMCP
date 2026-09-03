@@ -59,7 +59,15 @@ class MessageService:
 
     async def get_message(self, channel_id: str, message_id: str, scopes: str) -> dict:
         self._permissions.check_read(scopes, "message")
-        return {"channel_id": channel_id, "message_id": message_id}
+        msg = await self._bot.get_message(channel_id, message_id)
+        return {
+            "id": msg.id,
+            "channel_id": msg.channel_id,
+            "author_id": msg.author_id,
+            "author_name": msg.author_name,
+            "content": msg.content,
+            "timestamp": msg.timestamp,
+        }
 
     async def edit_message(
         self,
