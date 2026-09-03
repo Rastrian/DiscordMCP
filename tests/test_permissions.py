@@ -235,3 +235,16 @@ async def test_check_discord_permission_unknown_operation_is_noop():
     bot = _permission_bot()
     await check_discord_permission(bot, "123456789012345678", "not.a.mapped.operation")
     bot.rest.get_guild.assert_not_called()
+
+
+def test_permission_bits_match_discord_spec():
+    """Regression: webhook/timeout bits must match the official Discord values.
+
+    0x2000000 (1<<25) is USE_VAD, not MANAGE_WEBHOOKS (1<<29).
+    0x400000000 (1<<34) is MANAGE_THREADS, not MODERATE_MEMBERS (1<<40).
+    """
+    from discord_mcp_platform.discord import permissions as perms
+
+    assert perms.MANAGE_WEBHOOKS == 1 << 29
+    assert perms.TIMEOUT_MEMBERS == 1 << 40
+    assert perms.MANAGE_EVENTS == 1 << 33

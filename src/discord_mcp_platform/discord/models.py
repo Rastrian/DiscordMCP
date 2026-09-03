@@ -5,7 +5,21 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from datetime import datetime
+
+from pydantic import BaseModel, Field, field_validator
+
+SNOWFLAKE_PATTERN = r"^[0-9]{15,25}$"
+
+
+def _validate_iso_timestamp(value: str | None) -> str | None:
+    if value is None:
+        return None
+    try:
+        datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise ValueError("must be an ISO 8601 timestamp") from exc
+    return value
 
 
 class DiscordGuild(BaseModel):
@@ -455,3 +469,132 @@ class AutomationDraftOutput(BaseModel):
     status: str
     draft_id: str | None = None
     summary: str
+
+
+class GuildIncidentActionsInput(BaseModel):
+    guild_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+    invites_disabled_until: str | None = None
+    dms_disabled_until: str | None = None
+    dry_run: bool = True
+    confirmation: str | None = None
+
+    _validate_iso = field_validator("invites_disabled_until", "dms_disabled_until")(
+        _validate_iso_timestamp
+    )
+
+
+class EventListInput(BaseModel):
+    guild_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+
+
+class EventGetInput(BaseModel):
+    guild_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+    event_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+
+
+class EventCreateInput(BaseModel):
+    guild_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+    name: str = Field(min_length=1, max_length=100)
+    description: str | None = Field(default=None, max_length=1000)
+    scheduled_start_time: str = Field(min_length=1)
+    entity_type: int | None = Field(default=None, ge=1, le=3)
+    dry_run: bool = True
+    confirmation: str | None = None
+
+    _validate_iso = field_validator("scheduled_start_time")(_validate_iso_timestamp)
+
+
+class EventUpdateInput(BaseModel):
+    guild_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+    event_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+    name: str | None = Field(default=None, min_length=1, max_length=100)
+    description: str | None = Field(default=None, max_length=1000)
+    scheduled_start_time: str | None = None
+    scheduled_end_time: str | None = None
+    entity_type: int | None = Field(default=None, ge=1, le=3)
+    status: int | None = Field(default=None, ge=1, le=4)
+    dry_run: bool = True
+    confirmation: str | None = None
+
+    _validate_iso = field_validator("scheduled_start_time", "scheduled_end_time")(
+        _validate_iso_timestamp
+    )
+
+
+class EventDeleteInput(BaseModel):
+    guild_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+    event_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+    dry_run: bool = True
+    confirmation: str | None = None
+
+
+class EventUsersInput(BaseModel):
+    guild_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+    event_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+    limit: int = Field(default=100, ge=1, le=100)
+
+
+class AutomodListInput(BaseModel):
+    guild_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+
+
+class AutomodGetInput(BaseModel):
+    guild_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+    rule_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+
+
+class AutomodCreateInput(BaseModel):
+    guild_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+    name: str = Field(min_length=1, max_length=100)
+    event_type: int = Field(ge=1, le=3)
+    trigger: dict
+    actions: list[dict] = Field(min_length=1)
+    enabled: bool = True
+    dry_run: bool = True
+    confirmation: str | None = None
+
+
+class AutomodUpdateInput(BaseModel):
+    guild_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+    rule_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+    name: str | None = Field(default=None, min_length=1, max_length=100)
+    event_type: int | None = Field(default=None, ge=1, le=3)
+    trigger: dict | None = None
+    actions: list[dict] | None = Field(default=None, min_length=1)
+    enabled: bool | None = None
+    dry_run: bool = True
+    confirmation: str | None = None
+
+
+class AutomodDeleteInput(BaseModel):
+    guild_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+    rule_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+    dry_run: bool = True
+    confirmation: str | None = None
+
+
+class PinListInput(BaseModel):
+    channel_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+
+
+class PinOpInput(BaseModel):
+    channel_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+    message_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+    dry_run: bool = True
+    confirmation: str | None = None
+
+
+class ReactionListInput(BaseModel):
+    channel_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+    message_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+    emoji: str = Field(min_length=1, max_length=100)
+    limit: int = Field(default=25, ge=1, le=100)
+
+
+class ReactionRemoveUserInput(BaseModel):
+    channel_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+    message_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+    emoji: str = Field(min_length=1, max_length=100)
+    user_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+    dry_run: bool = True
+    confirmation: str | None = None
