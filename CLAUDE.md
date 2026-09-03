@@ -398,8 +398,8 @@ Versioned docs live in `docs/`:
 Spec coverage lives in `specs/`:
 
 - `specs/openapi.json` — vendored official Discord OpenAPI spec
-  (refresh: `scripts/fetch-discord-spec.sh`, weekly sync via
-  `.github/workflows/spec-sync.yml`)
+  (refresh: `scripts/fetch-discord-spec.sh`; o Hermes tem um job
+  agendado de sincronizacao semanal)
 - `specs/COVERAGE.md` — generated spec-vs-REST-vs-MCP report
   (`scripts/coverage_report.py`, `--check` enforces the baseline)
 
