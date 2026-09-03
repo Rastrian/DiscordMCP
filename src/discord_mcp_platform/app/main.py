@@ -270,6 +270,17 @@ async def lifespan(app: FastAPI):
         )
         log.info("automation_scheduler_started")
 
+    # MCP HTTP server deve subir mesmo sem bot configurado: as tools
+    # falham em runtime (401) se o bot nao estiver autenticado, mas o
+    # servidor MCP em si (initialize/list_tools) e util para clientes
+    # validarem conectividade sem um token real do Discord.
+    if settings.mcp_transport == "http" and get_bot() is None and settings.database_url:
+        _degraded_bot = BotRuntime(settings.discord_bot_token or "")
+        _degraded_bot._allowed_guilds = settings.allowed_guild_ids
+        _degraded_bot._allowed_channels = settings.allowed_channel_ids
+        set_bot(_degraded_bot)
+        log.warning("bot_degraded_mode", reason="discord_bot_token_missing")
+
     try:
         if settings.mcp_transport == "http" and get_bot() is not None:
             from discord_mcp_platform.mcp.server import create_session_manager
