@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import asyncio
+import time
 
 import httpx
 
@@ -57,6 +58,9 @@ class DiscordRestClient:
         return await self._request(
             "GET", f"/channels/{channel_id}/messages", params={"limit": limit}
         )
+
+    async def get_channel_message(self, channel_id: str, message_id: str) -> dict:
+        return await self._request("GET", f"/channels/{channel_id}/messages/{message_id}")
 
     async def send_message(self, channel_id: str, content: str) -> dict:
         return await self._request(
@@ -487,6 +491,9 @@ class DiscordRestClient:
     async def get_current_user(self) -> dict:
         return await self._request("GET", "/users/@me")
 
+    async def get_gateway_bot(self) -> dict:
+        return await self._request("GET", "/gateway/bot")
+
     # --- Application Commands ---
 
     async def create_guild_application_command(
@@ -529,38 +536,85 @@ class DiscordRestClient:
 
     async def _request(self, method: str, path: str, **kwargs) -> list[dict] | dict | None:
         bucket = f"{method}:{path}"
-        if self._rate_limiter.is_limited(bucket):
-            wait = self._rate_limiter.wait_time(bucket)
-            if wait > 0:
-                await asyncio.sleep(wait)
-
-        response = await self._client.request(method, path, **kwargs)
-        self._update_rate_limits(bucket, response)
+        response = await self._send_with_rate_limits(method, path, bucket, **kwargs)
         self._handle_response(response)
 
         if response.status_code == 204:
             return None
         return response.json()
 
+    async def _send_with_rate_limits(
+        self, method: str, path: str, bucket: str, **kwargs
+    ) -> httpx.Response:
+        await self._await_rate_limits(bucket)
+
+        response = await self._client.request(method, path, **kwargs)
+        self._update_rate_limits(bucket, response)
+
+        if response.status_code == 429:
+            response = await self._retry_on_429(method, path, bucket, response, **kwargs)
+
+        return response
+
+    async def _retry_on_429(
+        self, method: str, path: str, bucket: str, response: httpx.Response, **kwargs
+    ) -> httpx.Response:
+        retry_after = self._retry_after(response)
+
+        if self._is_global_429(response) or retry_after is None or retry_after > 10.0:
+            raise RateLimitError(retry_after=retry_after)
+
+        await asyncio.sleep(retry_after)
+        await self._await_rate_limits(bucket)
+
+        retry_response = await self._client.request(method, path, **kwargs)
+        self._update_rate_limits(bucket, retry_response)
+        if retry_response.status_code == 429:
+            raise RateLimitError(retry_after=self._retry_after(retry_response))
+        return retry_response
+
+    async def _await_rate_limits(self, bucket: str) -> None:
+        wait = self._rate_limiter.global_wait_time()
+        if self._rate_limiter.is_limited(bucket):
+            wait = max(wait, self._rate_limiter.wait_time(bucket))
+        if wait > 0:
+            await asyncio.sleep(wait)
+
+    @staticmethod
+    def _is_global_429(response: httpx.Response) -> bool:
+        value = response.headers.get("x-ratelimit-global", "").strip().lower()
+        return value in ("true", "1")
+
+    @staticmethod
+    def _retry_after(response: httpx.Response) -> float | None:
+        try:
+            data = response.json()
+        except ValueError:
+            data = None
+        if isinstance(data, dict) and data.get("retry_after") is not None:
+            return float(data["retry_after"])
+        header = response.headers.get("retry-after")
+        if header is not None:
+            return float(header)
+        return None
+
     def _update_rate_limits(self, bucket: str, response: httpx.Response) -> None:
         remaining = response.headers.get("x-ratelimit-remaining")
         reset_after = response.headers.get("x-ratelimit-reset-after")
         if remaining is not None and reset_after is not None:
-            import time
-
             self._rate_limiter.update(
                 bucket,
                 remaining=int(remaining),
                 reset_at=time.monotonic() + float(reset_after),
             )
 
+        if self._is_global_429(response):
+            retry_after = self._retry_after(response)
+            if retry_after is None:
+                retry_after = 0.0
+            self._rate_limiter.set_global(retry_after)
+
     def _handle_response(self, response: httpx.Response) -> None:
-        if response.status_code == 429:
-            data = response.json()
-            retry_after = data.get("retry_after")
-            raise RateLimitError(
-                retry_after=float(retry_after) if retry_after is not None else None
-            )
         if response.status_code == 404:
             raise DiscordNotFoundError(response.text)
         if response.status_code == 204:

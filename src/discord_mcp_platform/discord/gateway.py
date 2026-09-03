@@ -7,11 +7,13 @@ from __future__ import annotations
 
 import asyncio
 import json
+import random
 from typing import TYPE_CHECKING, Callable, Awaitable
 
 from discord_mcp_platform.app.logging import get_logger
 
 if TYPE_CHECKING:
+    from discord_mcp_platform.discord.rest_client import DiscordRestClient
     from websockets.asyncio.client import ClientConnection
 
 log = get_logger("discord_gateway")
@@ -32,11 +34,17 @@ OP_HEARTBEAT_ACK = 11
 DEFAULT_INTENTS = (1 << 0) | (1 << 1) | (1 << 9) | (1 << 15)
 
 
+def _backoff_delay(attempt: int) -> float:
+    """Exponential backoff with jitter, capped at 60 seconds."""
+    return min(60.0, 2.0**attempt) + random.uniform(0, 1)
+
+
 class DiscordGateway:
     """Discord Gateway WebSocket client handling the HELLO -> IDENTIFY -> READY flow."""
 
-    def __init__(self, bot_token: str) -> None:
+    def __init__(self, bot_token: str, rest: DiscordRestClient | None = None) -> None:
         self._token = bot_token
+        self._rest = rest
         self._ws: ClientConnection | None = None
         self._heartbeat_interval: float = 41.25
         self._last_sequence: int | None = None
@@ -47,10 +55,37 @@ class DiscordGateway:
         self._user_id: str | None = None
         self._heartbeat_task: asyncio.Task | None = None
         self._last_heartbeat_ack = True
+        self._reconnect_attempts = 0
+        self._session_start_checked = False
 
     def set_event_callback(self, callback: Callable[[dict], Awaitable[None]]) -> None:
         """Register an async callback invoked for every DISPATCH event."""
         self._event_callback = callback
+
+    async def _check_session_start_limit(self) -> bool:
+        """Fetch /gateway/bot once; return False when session starts are exhausted."""
+        if self._rest is None or self._session_start_checked:
+            return True
+        self._session_start_checked = True
+
+        try:
+            gateway_info = await self._rest.get_gateway_bot()
+        except Exception as exc:
+            log.warning("gateway_bot_info_failed", error=str(exc))
+            return True
+
+        limit = gateway_info.get("session_start_limit", {})
+        remaining = limit.get("remaining")
+        log.info(
+            "gateway_session_start_limit",
+            remaining=remaining,
+            total=limit.get("total"),
+            reset_after=limit.get("reset_after"),
+        )
+        if remaining is not None and remaining <= 0:
+            log.error("gateway_session_start_limit_exhausted", remaining=remaining)
+            return False
+        return True
 
     async def connect(self) -> None:
         """Connect to the Discord Gateway with automatic reconnect."""
@@ -61,12 +96,17 @@ class DiscordGateway:
             log.warning("websockets_not_available")
             return
 
+        if not await self._check_session_start_limit():
+            self._running = False
+            return
+
         self._running = True
         while self._running:
             url = self._resume_url if self._resume_url else GATEWAY_URL
             try:
                 async with ws_connect(url) as ws:
                     self._ws = ws
+                    self._reconnect_attempts = 0
                     await self._receive_loop(ws)
             except ConnectionClosed as exc:
                 if not self._running:
@@ -82,12 +122,14 @@ class DiscordGateway:
                     self._resume_url = None
                     self._running = False
                     break
-                await asyncio.sleep(2)
+                await asyncio.sleep(_backoff_delay(self._reconnect_attempts))
+                self._reconnect_attempts += 1
             except Exception as exc:
                 if not self._running:
                     break
                 log.warning("gateway_disconnected", error=str(exc))
-                await asyncio.sleep(5)
+                await asyncio.sleep(_backoff_delay(self._reconnect_attempts))
+                self._reconnect_attempts += 1
             finally:
                 self._ws = None
                 self._cancel_heartbeat()

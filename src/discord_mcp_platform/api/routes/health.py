@@ -9,9 +9,12 @@ from fastapi import APIRouter
 from sqlalchemy import text
 
 from discord_mcp_platform.app.lifecycle import engine
+from discord_mcp_platform.app.logging import get_logger
 from discord_mcp_platform.app.settings import settings
 
 router = APIRouter()
+
+log = get_logger("health")
 
 _redis = None
 
@@ -39,14 +42,16 @@ async def health_ready():
             await conn.execute(text("SELECT 1"))
         checks["database"] = "ok"
     except Exception as e:
-        checks["database"] = f"error: {e}"
+        checks["database"] = "error"
+        log.warning("health_database_error", error=str(e))
 
     try:
         r = await _get_redis()
         await r.ping()
         checks["redis"] = "ok"
     except Exception as e:
-        checks["redis"] = f"error: {e}"
+        checks["redis"] = "error"
+        log.warning("health_redis_error", error=str(e))
 
     all_ok = all(v == "ok" for v in checks.values())
     return {"status": "ok" if all_ok else "degraded", "checks": checks}

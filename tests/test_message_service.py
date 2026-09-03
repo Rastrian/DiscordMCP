@@ -66,3 +66,24 @@ async def test_send_non_dry_run_calls_discord(message_service, mock_bot):
     assert result.dry_run is False
     assert result.message_id == "999999999999999999"
     mock_bot.send_message.assert_called_once_with("234567890123456789", "Hello")
+
+
+async def test_get_message_returns_real_discord_data(message_service, mock_bot):
+    mock_bot.get_message.return_value = DiscordMessage(
+        id="999999999999999999",
+        channel_id="234567890123456789",
+        author_id="111111111111111111",
+        author_name="Real Author",
+        content="A real fetched message",
+        timestamp="2025-06-15T12:30:00Z",
+    )
+    result = await message_service.get_message(
+        "234567890123456789", "999999999999999999", scopes="message:read"
+    )
+    mock_bot.get_message.assert_called_once_with("234567890123456789", "999999999999999999")
+    assert result["id"] == "999999999999999999"
+    assert result["channel_id"] == "234567890123456789"
+    assert result["author_id"] == "111111111111111111"
+    assert result["author_name"] == "Real Author"
+    assert result["content"] == "A real fetched message"
+    assert result["timestamp"] == "2025-06-15T12:30:00Z"

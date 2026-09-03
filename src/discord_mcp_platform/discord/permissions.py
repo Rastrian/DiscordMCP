@@ -43,7 +43,7 @@ def compute_permissions_from_roles(
         role_id = str(role["id"])
         perms = int(role.get("permissions", 0))
         role_map[role_id] = perms
-        if role_id == str(guild_roles[0]["id"]) if guild_roles else False:
+        if role.get("name") == "@everyone":
             everyone_perms = perms
 
     # @everyone perms are the base
@@ -156,7 +156,9 @@ async def check_discord_permission(bot: BotRuntime, guild_id: str, operation: st
         perms = compute_permissions_from_roles(bot_role_ids, guild_roles, is_owner)
     except Exception as e:
         log.warning("discord_permission_check_failed", guild_id=guild_id, error=str(e))
-        return
+        raise DiscordPermissionError(
+            f"permission check unavailable for guild {guild_id}; denying {operation}"
+        ) from e
 
     if is_administrator(perms):
         return

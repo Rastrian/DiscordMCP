@@ -116,19 +116,23 @@ class BotRuntime:
 
     # --- Messages ---
 
+    def _parse_message(self, m: dict, channel_id: str) -> DiscordMessage:
+        return DiscordMessage(
+            id=m["id"],
+            channel_id=channel_id,
+            author_id=m["author"]["id"],
+            author_name=m["author"].get("global_name") or m["author"].get("username", ""),
+            content=m.get("content", ""),
+            timestamp=m.get("timestamp", ""),
+        )
+
     async def list_recent_messages(self, channel_id: str, limit: int = 50) -> list[DiscordMessage]:
         data = await self._rest_client.get_messages(channel_id, limit=limit)
-        return [
-            DiscordMessage(
-                id=m["id"],
-                channel_id=channel_id,
-                author_id=m["author"]["id"],
-                author_name=m["author"].get("global_name") or m["author"].get("username", ""),
-                content=m.get("content", ""),
-                timestamp=m.get("timestamp", ""),
-            )
-            for m in data
-        ]
+        return [self._parse_message(m, channel_id) for m in data]
+
+    async def get_message(self, channel_id: str, message_id: str) -> DiscordMessage:
+        data = await self._rest_client.get_channel_message(channel_id, message_id)
+        return self._parse_message(data, channel_id)
 
     async def send_message(self, channel_id: str, content: str) -> DiscordMessage:
         data = await self._rest_client.send_message(channel_id, content)
