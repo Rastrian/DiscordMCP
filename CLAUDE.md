@@ -386,16 +386,22 @@ The MVP is built. It includes:
 
 ## Documentation
 
-Project documentation lives in `.claude/docs/`:
+Root-level docs: `README.md`, `CLAUDE.md`.
 
-- `PROJECT_BRIEF.md`
-- `PRODUCT_SPEC.md`
-- `ARCHITECTURE.md`
-- `MCP_TOOLS.md`
-- `DATABASE_SCHEMA.md`
-- `SECURITY_POLICY.md`
-- `IMPLEMENTATION_PROMPT.md`
-- `MVP_BUILD_PROMPT.md`
+Versioned docs live in `docs/`:
+
+- `MCP_TOOLS.md` — every MCP tool, its REST endpoint, scopes, dry-run and
+  dangerous-op status (regenerate reference: read `mcp/tools/*.py`)
+- `SECURITY_POLICY.md` — non-goals, authorization model, dangerous
+  operation policy
+
+Spec coverage lives in `specs/`:
+
+- `specs/openapi.json` — vendored official Discord OpenAPI spec
+  (refresh: `scripts/fetch-discord-spec.sh`, weekly sync via
+  `.github/workflows/spec-sync.yml`)
+- `specs/COVERAGE.md` — generated spec-vs-REST-vs-MCP report
+  (`scripts/coverage_report.py`, `--check` enforces the baseline)
 
 Root-level docs: `README.md`, `CLAUDE.md`.
 
