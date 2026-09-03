@@ -197,9 +197,9 @@ The official [Discord OpenAPI spec](https://github.com/discord/discord-api-spec)
 
 - [`specs/COVERAGE.md`](specs/COVERAGE.md) — generated report comparing spec endpoints with the
   REST client and MCP tools (regenerate with `python3 scripts/coverage_report.py`).
-- `scripts/fetch-discord-spec.sh` — refreshes the vendored spec.
-- [Spec sync](.github/workflows/spec-sync.yml) — weekly workflow (Saturdays 09:00 UTC) that opens
-  a PR whenever Discord publishes spec changes.
+- `scripts/fetch-discord-spec.sh` — refreshes the vendored spec; a scheduled
+  agent (Hermes cron, Saturdays 06:00 America/Sao_Paulo) opens a sync PR
+  whenever Discord publishes spec changes.
 - `python3 scripts/coverage_report.py --check` — regression guard: fails if the number of
   in-scope implemented endpoints drops below the baseline in `specs/.coverage-baseline`.
 
