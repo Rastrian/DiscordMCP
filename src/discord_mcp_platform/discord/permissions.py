@@ -21,9 +21,10 @@ MANAGE_ROLES: int = 0x10000000
 KICK_MEMBERS: int = 0x2
 BAN_MEMBERS: int = 0x4
 ADMINISTRATOR: int = 0x8
-MANAGE_WEBHOOKS: int = 0x2000000
+MANAGE_WEBHOOKS: int = 0x20000000
 CREATE_INVITE: int = 0x1
-TIMEOUT_MEMBERS: int = 0x400000000
+TIMEOUT_MEMBERS: int = 0x10000000000
+MANAGE_EVENTS: int = 0x200000000
 
 
 def has_permission(permission_bits: int, flag: int) -> bool:
@@ -136,6 +137,17 @@ OPERATION_PERMISSIONS: dict[str, int] = {
     "invite.create": CREATE_INVITE,
     "invite.list": MANAGE_GUILD,
     "invite.delete": MANAGE_GUILD,
+    "event.read": MANAGE_EVENTS,
+    "event.create": MANAGE_EVENTS,
+    "event.update": MANAGE_EVENTS,
+    "event.delete": MANAGE_EVENTS,
+    "automod.read": MANAGE_GUILD,
+    "automod.create": MANAGE_GUILD,
+    "automod.update": MANAGE_GUILD,
+    "automod.delete": MANAGE_GUILD,
+    "message.pin": MANAGE_MESSAGES,
+    "message.unpin": MANAGE_MESSAGES,
+    "guild.incident_actions": MANAGE_GUILD,
 }
 
 

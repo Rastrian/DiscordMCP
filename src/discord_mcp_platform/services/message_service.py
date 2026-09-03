@@ -105,3 +105,75 @@ class MessageService:
 
             raise PolicyDeniedError(f"channel {channel_id} is not allowed")
         return await self._bot.send_rich_message(channel_id, content=content, embeds=embeds)
+
+    # --- Reactions ---
+
+    async def add_reaction(self, channel_id: str, message_id: str, emoji: str, scopes: str) -> dict:
+        self._permissions.check_write(scopes, "message")
+        if not self._permissions.check_channel_allowed(channel_id):
+            from discord_mcp_platform.errors import PolicyDeniedError
+
+            raise PolicyDeniedError(f"channel {channel_id} is not allowed")
+        await self._bot.add_reaction(channel_id, message_id, emoji)
+        return {"status": "reacted", "emoji": emoji}
+
+    async def remove_reaction(
+        self, channel_id: str, message_id: str, emoji: str, scopes: str
+    ) -> dict:
+        self._permissions.check_write(scopes, "message")
+        if not self._permissions.check_channel_allowed(channel_id):
+            from discord_mcp_platform.errors import PolicyDeniedError
+
+            raise PolicyDeniedError(f"channel {channel_id} is not allowed")
+        await self._bot.remove_reaction(channel_id, message_id, emoji)
+        return {"status": "removed", "emoji": emoji}
+
+    async def list_reactions(
+        self,
+        channel_id: str,
+        message_id: str,
+        emoji: str,
+        scopes: str,
+        limit: int = 25,
+    ) -> list[dict]:
+        self._permissions.check_read(scopes, "message")
+        if not self._permissions.check_channel_allowed(channel_id):
+            from discord_mcp_platform.errors import PolicyDeniedError
+
+            raise PolicyDeniedError(f"channel {channel_id} is not allowed")
+        return await self._bot.list_reactions(channel_id, message_id, emoji, limit=limit)
+
+    async def remove_user_reaction(
+        self,
+        channel_id: str,
+        message_id: str,
+        emoji: str,
+        user_id: str,
+        scopes: str,
+        dry_run: bool = True,
+        confirmation: str | None = None,
+    ) -> dict:
+        self._permissions.check_write(scopes, "message")
+        self._permissions.check_dangerous_operation("reaction.remove_user", dry_run, confirmation)
+        if not self._permissions.check_channel_allowed(channel_id):
+            from discord_mcp_platform.errors import PolicyDeniedError
+
+            raise PolicyDeniedError(f"channel {channel_id} is not allowed")
+        if dry_run:
+            return {
+                "status": "validated",
+                "dry_run": True,
+                "channel_id": channel_id,
+                "message_id": message_id,
+                "emoji": emoji,
+                "user_id": user_id,
+            }
+        await self._bot.remove_user_reaction(channel_id, message_id, emoji, user_id)
+        return {
+            "status": "removed_user_reaction",
+            "dry_run": False,
+            "channel_id": channel_id,
+            "message_id": message_id,
+            "emoji": emoji,
+            "user_id": user_id,
+        }

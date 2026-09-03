@@ -26,6 +26,8 @@ from discord_mcp_platform.services.member_service import MemberService
 from discord_mcp_platform.services.moderation_service import ModerationService
 from discord_mcp_platform.services.webhook_service import WebhookService
 from discord_mcp_platform.services.invite_service import InviteService
+from discord_mcp_platform.services.event_service import EventService
+from discord_mcp_platform.services.automod_service import AutomodService
 from discord_mcp_platform.mcp.tools import register_all_tools
 from discord_mcp_platform.mcp.resources import register_all_resources
 from discord_mcp_platform.mcp.prompts import register_all_prompts
@@ -135,6 +137,8 @@ def create_mcp_server(bot: BotRuntime) -> Server:
     moderation_svc = ModerationService(bot, permissions)
     webhook_svc = WebhookService(bot, permissions)
     invite_svc = InviteService(bot, permissions)
+    event_svc = EventService(bot, permissions)
+    automod_svc = AutomodService(bot, permissions)
 
     register_all_tools(
         server,
@@ -149,6 +153,8 @@ def create_mcp_server(bot: BotRuntime) -> Server:
         moderation_service=moderation_svc,
         webhook_service=webhook_svc,
         invite_service=invite_svc,
+        event_service=event_svc,
+        automod_service=automod_svc,
         bot=bot,
     )
     register_all_resources(server, bot)

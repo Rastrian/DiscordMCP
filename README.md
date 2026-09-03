@@ -28,7 +28,7 @@ graph TD
     end
 
     subgraph "Platform"
-        MCPS["MCP Server<br/>39 tools"]
+        MCPS["MCP Server<br/>62 tools"]
         GW["Discord Gateway<br/>WebSocket"]
         PE["Policy Engine"]
         AGENT["Agent Service<br/>~60 tools"]
@@ -60,14 +60,14 @@ graph LR
 
 ## Features
 
-### MCP Server (39 tools)
+### MCP Server (62 tools)
 
 ```mermaid
 graph LR
     subgraph "MCP Tools by Domain"
-        G["Guild<br/>3 tools"]
-        CH["Channel<br/>8 tools"]
-        MSG["Message<br/>4 tools"]
+        G["Guild<br/>4 tools"]
+        CH["Channel<br/>10 tools"]
+        MSG["Message<br/>5 tools"]
         MOD["Moderation<br/>2 tools"]
         THR["Thread<br/>1 tool"]
         ROLE["Role<br/>7 tools"]
@@ -76,12 +76,15 @@ graph LR
         INV["Invite<br/>4 tools"]
         AUTO["Automation<br/>1 tool"]
         AUD["Audit<br/>1 tool"]
+        REA["Reaction<br/>4 tools"]
+        EVT["Event<br/>6 tools"]
+        AMOD["Automod<br/>5 tools"]
     end
 ```
 
 | Domain | Tools |
 |--------|-------|
-| Guild | list, get, modify |
+| Guild | list, get, modify, incident_actions (lockdown) |
 | Channel | list, get, create, edit, delete, edit/delete permissions |
 | Message | list_recent, send, get, edit |
 | Moderation | delete, bulk_delete |
@@ -92,6 +95,10 @@ graph LR
 | Invite | create, list, get, delete |
 | Automation | draft |
 | Audit | list |
+| Reaction | add, remove, list, remove_user |
+| Event | list, get, create, update, delete, list_users |
+| Automod | list, get, create, update, delete |
+| Pins | pin.list, pin.add, pin.remove |
 
 All state-changing tools support dry-run (default on). Risky operations require explicit confirmation. Every write is audited.
 

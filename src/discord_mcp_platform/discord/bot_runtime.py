@@ -282,6 +282,16 @@ class BotRuntime:
         data = await self._rest_client.modify_guild(guild_id, **kwargs)
         return DiscordGuild(id=data["id"], name=data["name"], icon=data.get("icon"), owner=False)
 
+    async def set_incident_actions(
+        self,
+        guild_id: str,
+        invites_disabled_until: str | None,
+        dms_disabled_until: str | None,
+    ) -> dict:
+        return await self._rest_client.set_incident_actions(
+            guild_id, invites_disabled_until, dms_disabled_until
+        )
+
     # --- Webhooks ---
 
     async def create_webhook(self, channel_id: str, name: str) -> dict:
@@ -397,6 +407,16 @@ class BotRuntime:
 
     async def remove_reaction(self, channel_id: str, message_id: str, emoji: str) -> None:
         await self._rest_client.delete_own_reaction(channel_id, message_id, emoji)
+
+    async def list_reactions(
+        self, channel_id: str, message_id: str, emoji: str, limit: int = 25
+    ) -> list[dict]:
+        return await self._rest_client.list_reactions(channel_id, message_id, emoji, limit=limit)
+
+    async def remove_user_reaction(
+        self, channel_id: str, message_id: str, emoji: str, user_id: str
+    ) -> None:
+        await self._rest_client.remove_user_reaction(channel_id, message_id, emoji, user_id)
 
     # --- Crosspost ---
 

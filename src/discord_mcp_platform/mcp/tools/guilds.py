@@ -14,6 +14,7 @@ from discord_mcp_platform.discord.models import (
     GuildListInput,
     GuildGetInput,
     GuildModifyInput,
+    GuildIncidentActionsInput,
 )
 from discord_mcp_platform.services.guild_service import GuildService
 from discord_mcp_platform.services.audit_service import AuditService
@@ -35,6 +36,16 @@ def get_tools() -> list[Tool]:
             name="discord.guild.modify",
             description="Modify a Discord guild. Defaults to dry-run mode.",
             inputSchema=GuildModifyInput.model_json_schema(),
+        ),
+        Tool(
+            name="discord.guild.incident_actions",
+            description=(
+                "Set guild incident actions (server lockdown): temporarily disable "
+                "invites and/or DMs for the whole guild until the given ISO 8601 "
+                "timestamps. Discord allows at most 24h ahead; pass null to "
+                "re-enable. Defaults to dry-run mode."
+            ),
+            inputSchema=GuildIncidentActionsInput.model_json_schema(),
         ),
     ]
 
@@ -66,7 +77,7 @@ def get_handler(
             input_data = GuildModifyInput.model_validate(arguments)
             result = await guild_service.modify_guild(
                 input_data.guild_id,
-                scopes="guild:manage",
+                scopes="guild:write",
                 name=input_data.name,
                 dry_run=input_data.dry_run,
                 confirmation=input_data.confirmation,
@@ -76,6 +87,28 @@ def get_handler(
                 action="discord.guild.modify",
                 guild_id=input_data.guild_id,
                 details={"dry_run": input_data.dry_run},
+            )
+            return [TextContent(type="text", text=json.dumps(result))]
+
+        if name == "discord.guild.incident_actions":
+            input_data = GuildIncidentActionsInput.model_validate(arguments)
+            result = await guild_service.set_incident_actions(
+                input_data.guild_id,
+                input_data.invites_disabled_until,
+                input_data.dms_disabled_until,
+                scopes="guild:write",
+                dry_run=input_data.dry_run,
+                confirmation=input_data.confirmation,
+            )
+            await audit.record(
+                workspace_id="system",
+                action="discord.guild.incident_actions",
+                guild_id=input_data.guild_id,
+                details={
+                    "dry_run": input_data.dry_run,
+                    "invites_disabled_until": input_data.invites_disabled_until,
+                    "dms_disabled_until": input_data.dms_disabled_until,
+                },
             )
             return [TextContent(type="text", text=json.dumps(result))]
 

@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import asyncio
 import time
+from urllib.parse import quote
 
 import httpx
 
@@ -172,6 +173,18 @@ class DiscordRestClient:
     async def modify_guild(self, guild_id: str, **kwargs) -> dict:
         return await self._request("PATCH", f"/guilds/{guild_id}", json=kwargs)
 
+    async def set_incident_actions(
+        self,
+        guild_id: str,
+        invites_disabled_until: str | None,
+        dms_disabled_until: str | None,
+    ) -> dict:
+        body: dict = {
+            "invites_disabled_until": invites_disabled_until,
+            "dms_disabled_until": dms_disabled_until,
+        }
+        return await self._request("PUT", f"/guilds/{guild_id}/incident-actions", json=body)
+
     # --- Webhooks ---
 
     async def create_webhook(self, channel_id: str, name: str, avatar: str | None = None) -> dict:
@@ -267,6 +280,25 @@ class DiscordRestClient:
     async def delete_own_reaction(self, channel_id: str, message_id: str, emoji: str) -> None:
         await self._request(
             "DELETE", f"/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me"
+        )
+
+    async def list_reactions(
+        self, channel_id: str, message_id: str, emoji: str, limit: int = 25
+    ) -> list[dict]:
+        encoded_emoji = quote(emoji, safe="")
+        return await self._request(
+            "GET",
+            f"/channels/{channel_id}/messages/{message_id}/reactions/{encoded_emoji}",
+            params={"limit": limit},
+        )
+
+    async def remove_user_reaction(
+        self, channel_id: str, message_id: str, emoji: str, user_id: str
+    ) -> None:
+        encoded_emoji = quote(emoji, safe="")
+        await self._request(
+            "DELETE",
+            f"/channels/{channel_id}/messages/{message_id}/reactions/{encoded_emoji}/{user_id}",
         )
 
     # --- Crosspost ---

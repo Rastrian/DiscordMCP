@@ -18,6 +18,8 @@ from discord_mcp_platform.discord.models import (
     ChannelDeleteInput,
     ChannelPermissionsEditInput,
     ChannelPermissionsDeleteInput,
+    PinListInput,
+    PinOpInput,
 )
 from discord_mcp_platform.services.channel_service import ChannelService
 from discord_mcp_platform.services.audit_service import AuditService
@@ -59,6 +61,21 @@ def get_tools() -> list[Tool]:
             name="discord.channel.delete_permissions",
             description="Delete a permission overwrite for a channel. Defaults to dry-run mode.",
             inputSchema=ChannelPermissionsDeleteInput.model_json_schema(),
+        ),
+        Tool(
+            name="discord.pin.list",
+            description="List pinned messages in a Discord channel.",
+            inputSchema=PinListInput.model_json_schema(),
+        ),
+        Tool(
+            name="discord.pin.add",
+            description="Pin a message in a Discord channel. Defaults to dry-run mode.",
+            inputSchema=PinOpInput.model_json_schema(),
+        ),
+        Tool(
+            name="discord.pin.remove",
+            description="Unpin a message from a Discord channel. Defaults to dry-run mode.",
+            inputSchema=PinOpInput.model_json_schema(),
         ),
     ]
 
@@ -188,6 +205,52 @@ def get_handler(
                 guild_id=input_data.guild_id,
                 channel_id=input_data.channel_id,
                 target_id=input_data.overwrite_id,
+                details={"dry_run": input_data.dry_run},
+            )
+            return [TextContent(type="text", text=json.dumps(result))]
+
+        if name == "discord.pin.list":
+            input_data = PinListInput.model_validate(arguments)
+            result = await channel_service.list_pins(input_data.channel_id, scopes="message:read")
+            await audit.record(
+                workspace_id="system",
+                action="discord.pin.list",
+                channel_id=input_data.channel_id,
+            )
+            return [TextContent(type="text", text=json.dumps(result))]
+
+        if name == "discord.pin.add":
+            input_data = PinOpInput.model_validate(arguments)
+            result = await channel_service.pin_message(
+                input_data.channel_id,
+                input_data.message_id,
+                scopes="message:write",
+                dry_run=input_data.dry_run,
+                confirmation=input_data.confirmation,
+            )
+            await audit.record(
+                workspace_id="system",
+                action="discord.pin.add",
+                channel_id=input_data.channel_id,
+                target_id=input_data.message_id,
+                details={"dry_run": input_data.dry_run},
+            )
+            return [TextContent(type="text", text=json.dumps(result))]
+
+        if name == "discord.pin.remove":
+            input_data = PinOpInput.model_validate(arguments)
+            result = await channel_service.unpin_message(
+                input_data.channel_id,
+                input_data.message_id,
+                scopes="message:write",
+                dry_run=input_data.dry_run,
+                confirmation=input_data.confirmation,
+            )
+            await audit.record(
+                workspace_id="system",
+                action="discord.pin.remove",
+                channel_id=input_data.channel_id,
+                target_id=input_data.message_id,
                 details={"dry_run": input_data.dry_run},
             )
             return [TextContent(type="text", text=json.dumps(result))]
