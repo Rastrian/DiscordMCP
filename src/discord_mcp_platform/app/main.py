@@ -12,6 +12,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.sessions import SessionMiddleware
 
+from discord_mcp_platform._version import __version__
 from discord_mcp_platform.app.logging import setup_logging, get_logger
 from discord_mcp_platform.app.settings import settings
 from discord_mcp_platform.app.bot_state import get_bot, set_bot
@@ -300,7 +301,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Discord MCP Platform",
-    version="0.1.0",
+    version=__version__,
     lifespan=lifespan,
 )
 
