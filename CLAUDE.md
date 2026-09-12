@@ -362,7 +362,7 @@ The MVP is built. It includes:
 4. Discord OAuth login skeleton.
 5. Hosted bot configuration.
 6. Guild installation model.
-7. MCP server (62 tools, HTTP and STDIO transport).
+7. MCP server (66 tools, HTTP and STDIO transport).
 8. MCP client token model.
 9. Conversational AI agent (~60 tools, responds to @mentions).
 10. Discord Gateway WebSocket with slash commands.

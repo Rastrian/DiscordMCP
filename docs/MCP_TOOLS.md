@@ -3,7 +3,7 @@
 > Generated from `src/discord_mcp_platform/mcp/tools/*.py` and
 > `src/discord_mcp_platform/security/policy.py`.
 
-Total: **62 tools**.
+Total: **66 tools**.
 
 | Tool | Scopes | Dry-run | Dangerous | Description |
 |---|---|---|---|---|
@@ -38,6 +38,10 @@ Total: **62 tools**.
 | `discord.invite.list` | channel:read | — | no | List invites for a Discord guild. |
 | `discord.invite.get` | channel:read | — | no | Get an invite by code. |
 | `discord.invite.delete` | channel:write | yes | yes | Delete (revoke) an invite. Defaults to dry-run mode. |
+| `discord.invite.target.add` | guild:write | yes | yes | Add a target user to an existing invite. Defaults to dry-run mode. |
+| `discord.invite.target.remove` | guild:write | yes | yes | Remove a target user from an existing invite. Defaults to dry-run mode. |
+| `discord.invite.target.bulk_add` | guild:write | yes | yes | Bulk add target users to an existing invite. Defaults to dry-run mode. |
+| `discord.invite.target.bulk_remove` | guild:write | yes | yes | Bulk remove target users from an existing invite. Defaults to dry-run mode. |
 | `discord.member.get` | member:read | — | no | Get a member of a Discord guild. |
 | `discord.member.list` | member:read | — | no | List members of a Discord guild. |
 | `discord.member.kick` | member:write | yes | yes | Kick a member from a Discord guild. Defaults to dry-run mode. |

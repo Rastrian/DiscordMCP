@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Annotated
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -465,6 +466,42 @@ class InviteGetInput(BaseModel):
 class InviteDeleteInput(BaseModel):
     guild_id: str = Field(pattern=r"^[0-9]{15,25}$")
     code: str = Field(min_length=1, max_length=16)
+    dry_run: bool = True
+    confirmation: str | None = None
+
+
+class InviteTargetAddInput(BaseModel):
+    guild_id: str = Field(pattern=r"^[0-9]{15,25}$")
+    code: str = Field(min_length=1, max_length=16)
+    user_id: str = Field(pattern=r"^[0-9]{15,25}$")
+    dry_run: bool = True
+    confirmation: str | None = None
+
+
+class InviteTargetRemoveInput(BaseModel):
+    guild_id: str = Field(pattern=r"^[0-9]{15,25}$")
+    code: str = Field(min_length=1, max_length=16)
+    user_id: str = Field(pattern=r"^[0-9]{15,25}$")
+    dry_run: bool = True
+    confirmation: str | None = None
+
+
+class InviteTargetBulkAddInput(BaseModel):
+    guild_id: str = Field(pattern=r"^[0-9]{15,25}$")
+    code: str = Field(min_length=1, max_length=16)
+    user_ids: list[Annotated[str, Field(pattern=r"^[0-9]{15,25}$")]] = Field(
+        min_length=1, max_length=1000
+    )
+    dry_run: bool = True
+    confirmation: str | None = None
+
+
+class InviteTargetBulkRemoveInput(BaseModel):
+    guild_id: str = Field(pattern=r"^[0-9]{15,25}$")
+    code: str = Field(min_length=1, max_length=16)
+    user_ids: list[Annotated[str, Field(pattern=r"^[0-9]{15,25}$")]] = Field(
+        min_length=1, max_length=1000
+    )
     dry_run: bool = True
     confirmation: str | None = None
 
