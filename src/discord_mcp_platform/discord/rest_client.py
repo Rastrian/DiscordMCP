@@ -518,6 +518,22 @@ class DiscordRestClient:
     async def update_invite_target_users(self, code: str, **kwargs) -> dict:
         return await self._request("PUT", f"/invites/{code}/target-users", json=kwargs)
 
+    async def add_invite_target_user(self, code: str, user_id: str) -> None:
+        await self._request("PUT", f"/invites/{code}/target-users/{user_id}")
+
+    async def remove_invite_target_user(self, code: str, user_id: str) -> None:
+        await self._request("DELETE", f"/invites/{code}/target-users/{user_id}")
+
+    async def bulk_add_invite_target_users(self, code: str, user_ids: list[str]) -> None:
+        await self._request(
+            "POST", f"/invites/{code}/target-users/bulk-add", json={"user_ids": user_ids}
+        )
+
+    async def bulk_remove_invite_target_users(self, code: str, user_ids: list[str]) -> None:
+        await self._request(
+            "POST", f"/invites/{code}/target-users/bulk-delete", json={"user_ids": user_ids}
+        )
+
     # --- Bot ---
 
     async def get_current_user(self) -> dict:

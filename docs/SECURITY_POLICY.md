@@ -49,7 +49,8 @@ State-changing operations default to `dry_run=true` and require an explicit
 message send/edit/delete/bulk-delete, channel create/edit/delete and
 permission changes, role create/modify/delete/assign/remove/reorder, member
 kick/ban/unban/timeout, webhook create/modify/delete/execute, guild modify
-and incident actions, invites create/delete, automod create/update/delete,
+and incident actions, invites create/delete and invite target-user
+add/remove/bulk-add/bulk-remove, automod create/update/delete,
 event create/update/delete, pins add/remove, thread create,
 reaction add/remove/remove-user, automation changes.
 

@@ -13,6 +13,8 @@ from discord_mcp_platform.discord.bot_runtime import BotRuntime
 from discord_mcp_platform.discord.rest_client import DiscordRestClient
 from discord_mcp_platform.discord.permissions import (
     ADMINISTRATOR,
+    MANAGE_GUILD,
+    OPERATION_PERMISSIONS,
     SEND_MESSAGES,
     check_discord_permission,
     compute_permissions_from_roles,
@@ -155,6 +157,23 @@ def test_dangerous_operation_invite_create():
         svc.check_dangerous_operation("invite.create", dry_run=False, confirmation=None)
 
 
+@pytest.mark.parametrize(
+    "operation",
+    [
+        "invite.target.add",
+        "invite.target.remove",
+        "invite.target.bulk_add",
+        "invite.target.bulk_remove",
+    ],
+)
+def test_dangerous_operation_invite_target_operations(operation):
+    svc = PermissionService([], [])
+    svc.check_dangerous_operation(operation, dry_run=True, confirmation=None)
+    svc.check_dangerous_operation(operation, dry_run=False, confirmation="yes")
+    with pytest.raises(PolicyDeniedError):
+        svc.check_dangerous_operation(operation, dry_run=False, confirmation=None)
+
+
 def test_dangerous_operation_member_unban():
     svc = PermissionService([], [])
     svc.check_dangerous_operation("member.unban", dry_run=True, confirmation=None)
@@ -248,3 +267,17 @@ def test_permission_bits_match_discord_spec():
     assert perms.MANAGE_WEBHOOKS == 1 << 29
     assert perms.TIMEOUT_MEMBERS == 1 << 40
     assert perms.MANAGE_EVENTS == 1 << 33
+
+
+def test_invite_target_operations_require_manage_guild():
+    """Regression: invite targeting maps to MANAGE_GUILD (0x20), per the official
+    Discord permissions table (the target-users family requires being the inviter
+    or having MANAGE_GUILD)."""
+    assert MANAGE_GUILD == 0x20 == 1 << 5
+    for action in (
+        "invite.target.add",
+        "invite.target.remove",
+        "invite.target.bulk_add",
+        "invite.target.bulk_remove",
+    ):
+        assert OPERATION_PERMISSIONS[action] == MANAGE_GUILD

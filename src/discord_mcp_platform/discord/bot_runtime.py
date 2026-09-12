@@ -598,6 +598,18 @@ class BotRuntime:
     async def update_invite_target_users(self, code: str, **kwargs) -> dict:
         return await self._rest_client.update_invite_target_users(code, **kwargs)
 
+    async def add_invite_target_user(self, code: str, user_id: str) -> None:
+        await self._rest_client.add_invite_target_user(code, user_id)
+
+    async def remove_invite_target_user(self, code: str, user_id: str) -> None:
+        await self._rest_client.remove_invite_target_user(code, user_id)
+
+    async def bulk_add_invite_target_users(self, code: str, user_ids: list[str]) -> None:
+        await self._rest_client.bulk_add_invite_target_users(code, user_ids)
+
+    async def bulk_remove_invite_target_users(self, code: str, user_ids: list[str]) -> None:
+        await self._rest_client.bulk_remove_invite_target_users(code, user_ids)
+
     # --- Bot ---
 
     async def get_bot_info(self) -> dict:

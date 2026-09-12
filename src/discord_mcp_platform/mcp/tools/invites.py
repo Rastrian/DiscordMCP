@@ -15,6 +15,10 @@ from discord_mcp_platform.discord.models import (
     InviteListInput,
     InviteGetInput,
     InviteDeleteInput,
+    InviteTargetAddInput,
+    InviteTargetRemoveInput,
+    InviteTargetBulkAddInput,
+    InviteTargetBulkRemoveInput,
 )
 from discord_mcp_platform.services.audit_service import AuditService
 
@@ -41,6 +45,28 @@ def get_tools() -> list[Tool]:
             description="Delete (revoke) an invite. Defaults to dry-run mode.",
             inputSchema=InviteDeleteInput.model_json_schema(),
         ),
+        Tool(
+            name="discord.invite.target.add",
+            description="Add a target user to an existing invite. Defaults to dry-run mode.",
+            inputSchema=InviteTargetAddInput.model_json_schema(),
+        ),
+        Tool(
+            name="discord.invite.target.remove",
+            description="Remove a target user from an existing invite. Defaults to dry-run mode.",
+            inputSchema=InviteTargetRemoveInput.model_json_schema(),
+        ),
+        Tool(
+            name="discord.invite.target.bulk_add",
+            description="Bulk add target users to an existing invite. Defaults to dry-run mode.",
+            inputSchema=InviteTargetBulkAddInput.model_json_schema(),
+        ),
+        Tool(
+            name="discord.invite.target.bulk_remove",
+            description=(
+                "Bulk remove target users from an existing invite. Defaults to dry-run mode."
+            ),
+            inputSchema=InviteTargetBulkRemoveInput.model_json_schema(),
+        ),
     ]
 
 
@@ -51,8 +77,8 @@ def get_handler(
         if name == "discord.invite.create":
             input_data = InviteCreateInput.model_validate(arguments)
             result = await invite_service.create_invite(
-                input_data.guild_id,
-                input_data.channel_id,
+                channel_id=input_data.channel_id,
+                guild_id=input_data.guild_id,
                 scopes="channel:write",
                 max_age=input_data.max_age,
                 max_uses=input_data.max_uses,
@@ -97,8 +123,8 @@ def get_handler(
         if name == "discord.invite.delete":
             input_data = InviteDeleteInput.model_validate(arguments)
             result = await invite_service.delete_invite(
-                input_data.guild_id,
-                input_data.code,
+                code=input_data.code,
+                guild_id=input_data.guild_id,
                 scopes="channel:write",
                 dry_run=input_data.dry_run,
                 confirmation=input_data.confirmation,
@@ -109,6 +135,82 @@ def get_handler(
                 guild_id=input_data.guild_id,
                 target_id=input_data.code,
                 details={"dry_run": input_data.dry_run},
+            )
+            return [TextContent(type="text", text=json.dumps(result))]
+
+        if name == "discord.invite.target.add":
+            input_data = InviteTargetAddInput.model_validate(arguments)
+            result = await invite_service.add_invite_target_user(
+                code=input_data.code,
+                guild_id=input_data.guild_id,
+                user_id=input_data.user_id,
+                scopes="guild:write",
+                dry_run=input_data.dry_run,
+                confirmation=input_data.confirmation,
+            )
+            await audit.record(
+                workspace_id="system",
+                action="discord.invite.target.add",
+                guild_id=input_data.guild_id,
+                target_id=input_data.code,
+                details={"dry_run": input_data.dry_run, "user_id": input_data.user_id},
+            )
+            return [TextContent(type="text", text=json.dumps(result))]
+
+        if name == "discord.invite.target.remove":
+            input_data = InviteTargetRemoveInput.model_validate(arguments)
+            result = await invite_service.remove_invite_target_user(
+                code=input_data.code,
+                guild_id=input_data.guild_id,
+                user_id=input_data.user_id,
+                scopes="guild:write",
+                dry_run=input_data.dry_run,
+                confirmation=input_data.confirmation,
+            )
+            await audit.record(
+                workspace_id="system",
+                action="discord.invite.target.remove",
+                guild_id=input_data.guild_id,
+                target_id=input_data.code,
+                details={"dry_run": input_data.dry_run, "user_id": input_data.user_id},
+            )
+            return [TextContent(type="text", text=json.dumps(result))]
+
+        if name == "discord.invite.target.bulk_add":
+            input_data = InviteTargetBulkAddInput.model_validate(arguments)
+            result = await invite_service.bulk_add_invite_target_users(
+                code=input_data.code,
+                guild_id=input_data.guild_id,
+                user_ids=input_data.user_ids,
+                scopes="guild:write",
+                dry_run=input_data.dry_run,
+                confirmation=input_data.confirmation,
+            )
+            await audit.record(
+                workspace_id="system",
+                action="discord.invite.target.bulk_add",
+                guild_id=input_data.guild_id,
+                target_id=input_data.code,
+                details={"dry_run": input_data.dry_run, "user_ids": input_data.user_ids},
+            )
+            return [TextContent(type="text", text=json.dumps(result))]
+
+        if name == "discord.invite.target.bulk_remove":
+            input_data = InviteTargetBulkRemoveInput.model_validate(arguments)
+            result = await invite_service.bulk_remove_invite_target_users(
+                code=input_data.code,
+                guild_id=input_data.guild_id,
+                user_ids=input_data.user_ids,
+                scopes="guild:write",
+                dry_run=input_data.dry_run,
+                confirmation=input_data.confirmation,
+            )
+            await audit.record(
+                workspace_id="system",
+                action="discord.invite.target.bulk_remove",
+                guild_id=input_data.guild_id,
+                target_id=input_data.code,
+                details={"dry_run": input_data.dry_run, "user_ids": input_data.user_ids},
             )
             return [TextContent(type="text", text=json.dumps(result))]
 

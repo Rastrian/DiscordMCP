@@ -28,7 +28,7 @@ graph TD
     end
 
     subgraph "Platform"
-        MCPS["MCP Server<br/>62 tools"]
+        MCPS["MCP Server<br/>66 tools"]
         GW["Discord Gateway<br/>WebSocket"]
         PE["Policy Engine"]
         AGENT["Agent Service<br/>~60 tools"]
@@ -60,7 +60,7 @@ graph LR
 
 ## Features
 
-### MCP Server (62 tools)
+### MCP Server (66 tools)
 
 ```mermaid
 graph LR
@@ -73,7 +73,7 @@ graph LR
         ROLE["Role<br/>7 tools"]
         MEM["Member<br/>6 tools"]
         WH["Webhook<br/>6 tools"]
-        INV["Invite<br/>4 tools"]
+        INV["Invite<br/>8 tools"]
         AUTO["Automation<br/>1 tool"]
         AUD["Audit<br/>1 tool"]
         REA["Reaction<br/>4 tools"]
@@ -92,7 +92,7 @@ graph LR
 | Role | list, create, modify, delete, reorder, assign, remove |
 | Member | get, list, kick, ban, timeout, unban |
 | Webhook | create, list, get, modify, delete, execute |
-| Invite | create, list, get, delete |
+| Invite | create, list, get, delete, target.add, target.remove, target.bulk_add, target.bulk_remove |
 | Automation | draft |
 | Audit | list |
 | Reaction | add, remove, list, remove_user |
