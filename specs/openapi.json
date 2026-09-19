@@ -15602,6 +15602,14 @@
             }
           },
           {
+            "name": "shard",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          {
             "name": "with_counts",
             "in": "query",
             "schema": {
@@ -24096,6 +24104,25 @@
                 "type": "null"
               }
             ]
+          },
+          "target_user_ids": {
+            "description": "The IDs of the users to target with this invite.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/SnowflakeType"
+                },
+                "maxItems": 1000,
+                "uniqueItems": true
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         }
       },
@@ -30680,6 +30707,9 @@
           },
           "icon": {
             "type": "string"
+          },
+          "nsfw": {
+            "type": "boolean"
           },
           "recipients": {
             "type": "array",
