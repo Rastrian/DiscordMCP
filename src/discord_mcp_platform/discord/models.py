@@ -646,3 +646,23 @@ class ReactionRemoveUserInput(BaseModel):
     user_id: str = Field(pattern=SNOWFLAKE_PATTERN)
     dry_run: bool = True
     confirmation: str | None = None
+
+
+class PermissionsGuildMemberInput(BaseModel):
+    guild_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+    user_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+
+
+class PermissionsGuildRoleInput(BaseModel):
+    guild_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+    role_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+
+
+class PermissionsChannelMemberInput(BaseModel):
+    channel_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+    user_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+
+
+class PermissionsChannelRoleInput(BaseModel):
+    channel_id: str = Field(pattern=SNOWFLAKE_PATTERN)
+    role_id: str = Field(pattern=SNOWFLAKE_PATTERN)

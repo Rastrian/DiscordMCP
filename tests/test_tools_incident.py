@@ -217,6 +217,7 @@ async def test_all_new_tools_registered_without_duplicates():
         invite_service=AsyncMock(),
         event_service=AsyncMock(),
         automod_service=AsyncMock(),
+        permission_service=AsyncMock(),
         bot=AsyncMock(spec=BotRuntime),
     )
     response = await server.request_handlers[ListToolsRequest](

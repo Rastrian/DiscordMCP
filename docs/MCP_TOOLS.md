@@ -3,7 +3,7 @@
 > Generated from `src/discord_mcp_platform/mcp/tools/*.py` and
 > `src/discord_mcp_platform/security/policy.py`.
 
-Total: **66 tools**.
+Total: **70 tools**.
 
 | Tool | Scopes | Dry-run | Dangerous | Description |
 |---|---|---|---|---|
@@ -24,6 +24,10 @@ Total: **66 tools**.
 | `discord.pin.list` | message:read | — | no | List pinned messages in a Discord channel. |
 | `discord.pin.add` | message:write | yes | no | Pin a message in a Discord channel. Defaults to dry-run mode. |
 | `discord.pin.remove` | message:write | yes | no | Unpin a message from a Discord channel. Defaults to dry-run mode. |
+| `discord.permissions.get_guild_member` | guild:read | — | no | Get the computed permissions of a guild member. |
+| `discord.permissions.get_guild_role` | guild:read | — | no | Get the computed permissions of a guild role. |
+| `discord.permissions.get_channel_member` | channel:read | — | no | Get the computed permissions of a member in a channel. |
+| `discord.permissions.get_channel_role` | channel:read | — | no | Get the computed permissions of a role in a channel. |
 | `discord.event.list` | guild:read | — | no | List scheduled events in a Discord guild. |
 | `discord.event.get` | guild:read | — | no | Get a scheduled event of a Discord guild. |
 | `discord.event.create` | guild:write | yes | yes | Create a scheduled event in a Discord guild. Defaults to dry-run mode. |
