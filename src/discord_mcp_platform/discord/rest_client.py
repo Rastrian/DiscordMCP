@@ -242,6 +242,20 @@ class DiscordRestClient:
     async def delete_channel_permissions(self, channel_id: str, overwrite_id: str) -> None:
         await self._request("DELETE", f"/channels/{channel_id}/permissions/{overwrite_id}")
 
+    # --- Permissions ---
+
+    async def get_guild_member_permissions(self, guild_id: str, user_id: str) -> dict:
+        return await self._request("GET", f"/guilds/{guild_id}/permissions/member/{user_id}")
+
+    async def get_guild_role_permissions(self, guild_id: str, role_id: str) -> dict:
+        return await self._request("GET", f"/guilds/{guild_id}/permissions/role/{role_id}")
+
+    async def get_channel_member_permissions(self, channel_id: str, user_id: str) -> dict:
+        return await self._request("GET", f"/channels/{channel_id}/permissions/member/{user_id}")
+
+    async def get_channel_role_permissions(self, channel_id: str, role_id: str) -> dict:
+        return await self._request("GET", f"/channels/{channel_id}/permissions/role/{role_id}")
+
     # --- Invites ---
 
     async def get_channel_invites(self, channel_id: str) -> list[dict]:

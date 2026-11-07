@@ -58,9 +58,9 @@ OUT_OF_SCOPE_RULES: tuple[tuple[str, re.Pattern[str]], ...] = tuple(
 )
 
 # Product scope groups, ordered so that the first matching rule wins:
-# guild/channel/message/member/role/thread/webhook/invite/moderation/events/
-# automod/emoji/sticker/voice-state/incident/onboarding/welcome-screen/widget/
-# pins/reactions/guild application-commands/interactions.
+# guild/channel/message/member/role/permissions/thread/webhook/invite/moderation/
+# events/automod/emoji/sticker/voice-state/incident/onboarding/welcome-screen/
+# widget/pins/reactions/guild application-commands/interactions.
 GROUP_RULES: tuple[tuple[str, re.Pattern[str]], ...] = tuple(
     (group, re.compile(pattern))
     for group, pattern in (
@@ -86,6 +86,7 @@ GROUP_RULES: tuple[tuple[str, re.Pattern[str]], ...] = tuple(
         ("message", r"/messages"),
         ("moderation", r"/bans|/bulk-ban|/audit-logs|/prune"),
         ("role", r"/roles"),
+        ("permissions", r"/permissions/(member|role)"),
         ("member", r"/members|^/users/@me/guilds"),
         (
             "channel",
@@ -109,6 +110,7 @@ GROUP_ORDER = (
     "thread",
     "member",
     "role",
+    "permissions",
     "moderation",
     "automod",
     "events",
@@ -142,6 +144,7 @@ TOOL_GROUP_BY_PREFIX = {
     "reaction": "reactions",
     "event": "events",
     "automod": "automod",
+    "permissions": "permissions",
     "audit": None,
     "automation": None,
 }

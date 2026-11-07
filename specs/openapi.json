@@ -3852,6 +3852,158 @@
         ]
       }
     },
+    "/channels/{channel_id}/permissions/member/{user_id}": {
+      "parameters": [
+        {
+          "name": "channel_id",
+          "in": "path",
+          "schema": {
+            "$ref": "#/components/schemas/SnowflakeType"
+          },
+          "description": "The ID of the channel",
+          "required": true
+        },
+        {
+          "name": "user_id",
+          "in": "path",
+          "schema": {
+            "$ref": "#/components/schemas/SnowflakeType"
+          },
+          "description": "The ID of the member",
+          "required": true
+        }
+      ],
+      "get": {
+        "description": "Returns the fully cascaded permissions for a member in this channel, applying their roles and the channel's permission overwrites.",
+        "operationId": "get_channel_member_permissions",
+        "parameters": [
+          {
+            "name": "implicit",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Whether to apply implicit-permission computations. Defaults to true; pass false for the raw explicit permissions."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response for get_channel_member_permissions",
+            "headers": {
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "X-RateLimit-Reset-After": {
+                "$ref": "#/components/headers/X-RateLimit-Reset-After"
+              },
+              "X-RateLimit-Bucket": {
+                "$ref": "#/components/headers/X-RateLimit-Bucket"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PermissionsResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ClientRatelimitedResponse"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        },
+        "security": [
+          {
+            "BotToken": []
+          }
+        ]
+      }
+    },
+    "/channels/{channel_id}/permissions/role/{role_id}": {
+      "parameters": [
+        {
+          "name": "channel_id",
+          "in": "path",
+          "schema": {
+            "$ref": "#/components/schemas/SnowflakeType"
+          },
+          "description": "The ID of the channel",
+          "required": true
+        },
+        {
+          "name": "role_id",
+          "in": "path",
+          "schema": {
+            "$ref": "#/components/schemas/SnowflakeType"
+          },
+          "description": "The ID of the role",
+          "required": true
+        }
+      ],
+      "get": {
+        "description": "Returns the permissions a role grants in this channel, applying the channel's permission overwrites on top of the role's guild-level permissions.",
+        "operationId": "get_channel_role_permissions",
+        "parameters": [
+          {
+            "name": "implicit",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Whether to apply implicit-permission computations. Defaults to true. Pass false for the raw explicit permissions."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response for get_channel_role_permissions",
+            "headers": {
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "X-RateLimit-Reset-After": {
+                "$ref": "#/components/headers/X-RateLimit-Reset-After"
+              },
+              "X-RateLimit-Bucket": {
+                "$ref": "#/components/headers/X-RateLimit-Bucket"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PermissionsResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ClientRatelimitedResponse"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        },
+        "security": [
+          {
+            "BotToken": []
+          }
+        ]
+      }
+    },
     "/channels/{channel_id}/permissions/{overwrite_id}": {
       "parameters": [
         {
@@ -4158,6 +4310,7 @@
             "maximum": 10,
             "format": "int32"
           },
+          "description": "The ID of the answer",
           "required": true
         }
       ],
@@ -7177,6 +7330,7 @@
           "schema": {
             "$ref": "#/components/schemas/SnowflakeType"
           },
+          "description": "The ID of the guild",
           "required": true
         }
       ],
@@ -8127,7 +8281,8 @@
             "schema": {
               "type": "string",
               "maxLength": 1024
-            }
+            },
+            "description": "Text to search for. Matches messages containing these words within slop positions of each other."
           },
           {
             "name": "slop",
@@ -8136,7 +8291,8 @@
               "type": "integer",
               "minimum": 0,
               "maximum": 100
-            }
+            },
+            "description": "How many positions apart or out of order the words in content can be and still match. 0 matches the exact phrase; higher values, up to 100, match words further apart."
           },
           {
             "name": "author_id",
@@ -8607,6 +8763,138 @@
         ]
       }
     },
+    "/guilds/{guild_id}/permissions/member/{user_id}": {
+      "parameters": [
+        {
+          "name": "guild_id",
+          "in": "path",
+          "schema": {
+            "$ref": "#/components/schemas/SnowflakeType"
+          },
+          "description": "The ID of the guild",
+          "required": true
+        },
+        {
+          "name": "user_id",
+          "in": "path",
+          "schema": {
+            "$ref": "#/components/schemas/SnowflakeType"
+          },
+          "description": "The ID of the member",
+          "required": true
+        }
+      ],
+      "get": {
+        "description": "Returns the fully cascaded guild-level permissions for a member, applying all of their roles including @everyone's",
+        "operationId": "get_guild_member_permissions",
+        "responses": {
+          "200": {
+            "description": "200 response for get_guild_member_permissions",
+            "headers": {
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "X-RateLimit-Reset-After": {
+                "$ref": "#/components/headers/X-RateLimit-Reset-After"
+              },
+              "X-RateLimit-Bucket": {
+                "$ref": "#/components/headers/X-RateLimit-Bucket"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PermissionsResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ClientRatelimitedResponse"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        },
+        "security": [
+          {
+            "BotToken": []
+          }
+        ]
+      }
+    },
+    "/guilds/{guild_id}/permissions/role/{role_id}": {
+      "parameters": [
+        {
+          "name": "guild_id",
+          "in": "path",
+          "schema": {
+            "$ref": "#/components/schemas/SnowflakeType"
+          },
+          "description": "The ID of the guild",
+          "required": true
+        },
+        {
+          "name": "role_id",
+          "in": "path",
+          "schema": {
+            "$ref": "#/components/schemas/SnowflakeType"
+          },
+          "description": "The ID of the role",
+          "required": true
+        }
+      ],
+      "get": {
+        "description": "Returns the permissions a role grants at the guild level, combining the role's own permissions with @everyone's.",
+        "operationId": "get_guild_role_permissions",
+        "responses": {
+          "200": {
+            "description": "200 response for get_guild_role_permissions",
+            "headers": {
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "X-RateLimit-Reset-After": {
+                "$ref": "#/components/headers/X-RateLimit-Reset-After"
+              },
+              "X-RateLimit-Bucket": {
+                "$ref": "#/components/headers/X-RateLimit-Bucket"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PermissionsResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/ClientRatelimitedResponse"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        },
+        "security": [
+          {
+            "BotToken": []
+          }
+        ]
+      }
+    },
     "/guilds/{guild_id}/preview": {
       "parameters": [
         {
@@ -8894,7 +9182,8 @@
                   "$ref": "#/components/schemas/GuildJoinRequestApplicationStatus"
                 }
               ]
-            }
+            },
+            "description": "Filter by application status. Defaults to SUBMITTED if omitted"
           },
           {
             "name": "limit",
@@ -8903,7 +9192,8 @@
               "type": "integer",
               "minimum": 1,
               "maximum": 100
-            }
+            },
+            "description": "Maximum number of join requests to return"
           },
           {
             "name": "before",
@@ -9790,6 +10080,7 @@
           "schema": {
             "$ref": "#/components/schemas/SnowflakeType"
           },
+          "description": "The ID of the guild",
           "required": true
         },
         {
@@ -9798,6 +10089,7 @@
           "schema": {
             "$ref": "#/components/schemas/SnowflakeType"
           },
+          "description": "The ID of the scheduled event",
           "required": true
         }
       ],
@@ -9864,6 +10156,7 @@
           "schema": {
             "$ref": "#/components/schemas/SnowflakeType"
           },
+          "description": "The ID of the guild",
           "required": true
         },
         {
@@ -9872,6 +10165,7 @@
           "schema": {
             "$ref": "#/components/schemas/SnowflakeType"
           },
+          "description": "The ID of the scheduled event",
           "required": true
         },
         {
@@ -9880,6 +10174,7 @@
           "schema": {
             "$ref": "#/components/schemas/SnowflakeType"
           },
+          "description": "The ID of the event exception",
           "required": true
         }
       ],
@@ -10002,7 +10297,8 @@
             "in": "query",
             "schema": {
               "type": "boolean"
-            }
+            },
+            "description": "Include guild member data if it exists"
           },
           {
             "name": "limit",
@@ -10011,21 +10307,24 @@
               "type": "integer",
               "minimum": 1,
               "maximum": 100
-            }
+            },
+            "description": "Number of users to return (up to maximum 100)"
           },
           {
             "name": "before",
             "in": "query",
             "schema": {
               "$ref": "#/components/schemas/SnowflakeType"
-            }
+            },
+            "description": "Consider only users before given user id"
           },
           {
             "name": "after",
             "in": "query",
             "schema": {
               "$ref": "#/components/schemas/SnowflakeType"
-            }
+            },
+            "description": "Consider only users after given user id"
           }
         ],
         "responses": {
@@ -10084,6 +10383,7 @@
           "schema": {
             "$ref": "#/components/schemas/SnowflakeType"
           },
+          "description": "The ID of the guild",
           "required": true
         },
         {
@@ -10092,6 +10392,7 @@
           "schema": {
             "$ref": "#/components/schemas/SnowflakeType"
           },
+          "description": "The ID of the scheduled event",
           "required": true
         }
       ],
@@ -10108,7 +10409,8 @@
                 "$ref": "#/components/schemas/SnowflakeType"
               },
               "maxItems": 10
-            }
+            },
+            "description": "List of scheduled event exception ids to get user counts for"
           }
         ],
         "responses": {
@@ -10161,6 +10463,7 @@
           "schema": {
             "$ref": "#/components/schemas/SnowflakeType"
           },
+          "description": "The ID of the guild",
           "required": true
         },
         {
@@ -10169,6 +10472,7 @@
           "schema": {
             "$ref": "#/components/schemas/SnowflakeType"
           },
+          "description": "The ID of the scheduled event",
           "required": true
         },
         {
@@ -10177,6 +10481,7 @@
           "schema": {
             "$ref": "#/components/schemas/SnowflakeType"
           },
+          "description": "The ID of the event exception",
           "required": true
         }
       ],
@@ -10189,7 +10494,8 @@
             "in": "query",
             "schema": {
               "type": "boolean"
-            }
+            },
+            "description": "Include guild member data if it exists"
           },
           {
             "name": "limit",
@@ -10198,21 +10504,24 @@
               "type": "integer",
               "minimum": 1,
               "maximum": 100
-            }
+            },
+            "description": "Number of users to return (up to maximum 100)"
           },
           {
             "name": "before",
             "in": "query",
             "schema": {
               "$ref": "#/components/schemas/SnowflakeType"
-            }
+            },
+            "description": "Consider only users before given user id"
           },
           {
             "name": "after",
             "in": "query",
             "schema": {
               "$ref": "#/components/schemas/SnowflakeType"
-            }
+            },
+            "description": "Consider only users after given user id"
           }
         ],
         "responses": {
@@ -12539,28 +12848,29 @@
       }
     },
     "/invites/{code}/target-users/{user_id}": {
-      "parameters": [
-        {
-          "name": "code",
-          "in": "path",
-          "schema": {
-            "type": "string",
-            "maxLength": 152133
-          },
-          "required": true
-        },
-        {
-          "name": "user_id",
-          "in": "path",
-          "schema": {
-            "$ref": "#/components/schemas/SnowflakeType"
-          },
-          "required": true
-        }
-      ],
       "put": {
         "description": "Add a target user to an existing invite.",
         "operationId": "add_invite_target_user",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "schema": {
+              "type": "string",
+              "maxLength": 152133
+            },
+            "required": true
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "schema": {
+              "$ref": "#/components/schemas/SnowflakeType"
+            },
+            "description": "The ID of the user to target",
+            "required": true
+          }
+        ],
         "responses": {
           "204": {
             "description": "204 response for add_invite_target_user",
@@ -12598,6 +12908,26 @@
       "delete": {
         "description": "Remove a target user from an existing invite.",
         "operationId": "remove_invite_target_user",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "schema": {
+              "type": "string",
+              "maxLength": 152133
+            },
+            "required": true
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "schema": {
+              "$ref": "#/components/schemas/SnowflakeType"
+            },
+            "description": "The ID of the user to stop targeting",
+            "required": true
+          }
+        ],
         "responses": {
           "204": {
             "description": "204 response for remove_invite_target_user",
@@ -12689,6 +13019,14 @@
                         ]
                       }
                     ]
+                  },
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 100
                   }
                 },
                 "required": [
@@ -12801,6 +13139,14 @@
                     ],
                     "maxLength": 512,
                     "format": "uri"
+                  },
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 100
                   }
                 }
               }
@@ -12999,6 +13345,14 @@
                     ],
                     "maxLength": 512,
                     "format": "uri"
+                  },
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 100
                   }
                 }
               }
@@ -13671,6 +14025,7 @@
           "schema": {
             "$ref": "#/components/schemas/SnowflakeType"
           },
+          "description": "The ID of the lobby the message is in",
           "required": true
         },
         {
@@ -13679,6 +14034,7 @@
           "schema": {
             "$ref": "#/components/schemas/SnowflakeType"
           },
+          "description": "The ID of the message to update",
           "required": true
         }
       ],
@@ -13990,6 +14346,7 @@
           "schema": {
             "$ref": "#/components/schemas/SnowflakeType"
           },
+          "description": "The ID of the first user in the DM",
           "required": true
         },
         {
@@ -13998,6 +14355,7 @@
           "schema": {
             "$ref": "#/components/schemas/SnowflakeType"
           },
+          "description": "The ID of the second user in the DM",
           "required": true
         },
         {
@@ -14006,6 +14364,7 @@
           "schema": {
             "$ref": "#/components/schemas/SnowflakeType"
           },
+          "description": "The ID of the message to update",
           "required": true
         }
       ],
@@ -14389,6 +14748,7 @@
           "schema": {
             "$ref": "#/components/schemas/SnowflakeType"
           },
+          "description": "ID of SKU",
           "required": true
         }
       ],
@@ -14401,14 +14761,16 @@
             "in": "query",
             "schema": {
               "$ref": "#/components/schemas/SnowflakeType"
-            }
+            },
+            "description": "List subscriptions before this ID"
           },
           {
             "name": "after",
             "in": "query",
             "schema": {
               "$ref": "#/components/schemas/SnowflakeType"
-            }
+            },
+            "description": "List subscriptions after this ID"
           },
           {
             "name": "limit",
@@ -14417,14 +14779,16 @@
               "type": "integer",
               "minimum": 1,
               "maximum": 100
-            }
+            },
+            "description": "Number of results to return (1-100)"
           },
           {
             "name": "user_id",
             "in": "query",
             "schema": {
               "$ref": "#/components/schemas/SnowflakeType"
-            }
+            },
+            "description": "User ID for which to return subscriptions. Required except for OAuth queries."
           }
         ],
         "responses": {
@@ -14518,6 +14882,7 @@
           "schema": {
             "$ref": "#/components/schemas/SnowflakeType"
           },
+          "description": "ID of SKU",
           "required": true
         },
         {
@@ -14526,6 +14891,7 @@
           "schema": {
             "$ref": "#/components/schemas/SnowflakeType"
           },
+          "description": "ID of the subscription",
           "required": true
         }
       ],
@@ -14538,7 +14904,8 @@
             "in": "query",
             "schema": {
               "$ref": "#/components/schemas/SnowflakeType"
-            }
+            },
+            "description": "User ID for which to return the subscription. Required except for OAuth queries."
           }
         ],
         "responses": {
@@ -15613,7 +15980,8 @@
             "schema": {
               "type": "integer",
               "minimum": 0
-            }
+            },
+            "description": "Return the guilds contained within the specified shard. Required for applications that are sharded. Valid values are 0 to session_start_limit.max_concurrency - 1. Not the same as Gateway shard ids."
           },
           {
             "name": "with_counts",
@@ -21081,6 +21449,11 @@
             "const": 15
           },
           {
+            "title": "CHANNEL_POSITION_UPDATE",
+            "description": "Channels were reordered",
+            "const": 16
+          },
+          {
             "title": "MEMBER_KICK",
             "const": 20
           },
@@ -21127,6 +21500,11 @@
           {
             "title": "ROLE_DELETE",
             "const": 32
+          },
+          {
+            "title": "ROLE_POSITION_UPDATE",
+            "description": "Roles were reordered",
+            "const": 33
           },
           {
             "title": "INVITE_CREATE",
@@ -23754,6 +24132,18 @@
           "accent_color",
           "components",
           "spoiler"
+        ]
+      },
+      "ContentScanMetadataResponse": {
+        "type": "object",
+        "properties": {
+          "flags": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "flags"
         ]
       },
       "CreateEntitlementRequestData": {
@@ -35166,6 +35556,18 @@
           "account"
         ]
       },
+      "PermissionsResponse": {
+        "type": "object",
+        "properties": {
+          "permissions": {
+            "type": "string",
+            "description": "The computed permissions, as a stringified bitfield"
+          }
+        },
+        "required": [
+          "permissions"
+        ]
+      },
       "PinnedMessageResponse": {
         "type": "object",
         "properties": {
@@ -40523,11 +40925,31 @@
             ],
             "format": "int32"
           },
+          "placeholder": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "placeholder_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "content_scan_metadata": {
+            "$ref": "#/components/schemas/ContentScanMetadataResponse"
+          },
           "content_type": {
             "type": [
               "string",
               "null"
             ]
+          },
+          "flags": {
+            "type": "integer",
+            "format": "int32"
           },
           "attachment_id": {
             "$ref": "#/components/schemas/SnowflakeType"
@@ -40535,8 +40957,7 @@
         },
         "required": [
           "id",
-          "url",
-          "proxy_url"
+          "url"
         ]
       },
       "UpdateApplicationUserRoleConnectionRequest": {

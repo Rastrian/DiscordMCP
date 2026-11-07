@@ -610,6 +610,20 @@ class BotRuntime:
     async def bulk_remove_invite_target_users(self, code: str, user_ids: list[str]) -> None:
         await self._rest_client.bulk_remove_invite_target_users(code, user_ids)
 
+    # --- Permissions ---
+
+    async def get_guild_member_permissions(self, guild_id: str, user_id: str) -> dict:
+        return await self._rest_client.get_guild_member_permissions(guild_id, user_id)
+
+    async def get_guild_role_permissions(self, guild_id: str, role_id: str) -> dict:
+        return await self._rest_client.get_guild_role_permissions(guild_id, role_id)
+
+    async def get_channel_member_permissions(self, channel_id: str, user_id: str) -> dict:
+        return await self._rest_client.get_channel_member_permissions(channel_id, user_id)
+
+    async def get_channel_role_permissions(self, channel_id: str, role_id: str) -> dict:
+        return await self._rest_client.get_channel_role_permissions(channel_id, role_id)
+
     # --- Bot ---
 
     async def get_bot_info(self) -> dict:

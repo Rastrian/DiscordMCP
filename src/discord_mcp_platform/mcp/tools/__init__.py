@@ -18,6 +18,7 @@ from discord_mcp_platform.services.webhook_service import WebhookService
 from discord_mcp_platform.services.invite_service import InviteService
 from discord_mcp_platform.services.event_service import EventService
 from discord_mcp_platform.services.automod_service import AutomodService
+from discord_mcp_platform.services.permission_query_service import PermissionQueryService
 
 from discord_mcp_platform.discord.bot_runtime import BotRuntime
 
@@ -77,6 +78,10 @@ from discord_mcp_platform.mcp.tools.automod import (
     get_tools as automod_tools,
     get_handler as automod_handler,
 )
+from discord_mcp_platform.mcp.tools.permissions import (
+    get_tools as permission_tools,
+    get_handler as permissions_handler,
+)
 
 
 def register_all_tools(
@@ -95,6 +100,7 @@ def register_all_tools(
     invite_service: InviteService,
     event_service: EventService,
     automod_service: AutomodService,
+    permission_service: PermissionQueryService,
     bot: BotRuntime,
 ) -> None:
     tool_defs: list[Tool] = [
@@ -112,6 +118,7 @@ def register_all_tools(
         *reaction_tools(),
         *event_tools(),
         *automod_tools(),
+        *permission_tools(),
     ]
 
     handlers: list[Callable[[str, dict], Awaitable[list[TextContent] | None]]] = [
@@ -129,6 +136,7 @@ def register_all_tools(
         reaction_handler(message_service, audit_service),
         event_handler(event_service, audit_service),
         automod_handler(automod_service, audit_service),
+        permissions_handler(permission_service, audit_service),
     ]
 
     @server.list_tools()

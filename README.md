@@ -28,11 +28,11 @@ graph TD
     end
 
     subgraph "Platform"
-        MCPS["MCP Server<br/>66 tools"]
+        MCPS["MCP Server<br/>70 tools"]
         GW["Discord Gateway<br/>WebSocket"]
         PE["Policy Engine"]
         AGENT["Agent Service<br/>~60 tools"]
-        SVC["Discord Service Layer<br/>107 async REST methods"]
+        SVC["Discord Service Layer<br/>111 async REST methods"]
     end
 
     AI -->|MCP call| MCPS
@@ -60,7 +60,7 @@ graph LR
 
 ## Features
 
-### MCP Server (66 tools)
+### MCP Server (70 tools)
 
 ```mermaid
 graph LR
@@ -79,6 +79,7 @@ graph LR
         REA["Reaction<br/>4 tools"]
         EVT["Event<br/>6 tools"]
         AMOD["Automod<br/>5 tools"]
+        PERM["Permissions<br/>4 tools"]
     end
 ```
 
@@ -98,6 +99,7 @@ graph LR
 | Reaction | add, remove, list, remove_user |
 | Event | list, get, create, update, delete, list_users |
 | Automod | list, get, create, update, delete |
+| Permissions | get_guild_member, get_guild_role, get_channel_member, get_channel_role |
 | Pins | pin.list, pin.add, pin.remove |
 
 All state-changing tools support dry-run (default on). Risky operations require explicit confirmation. Every write is audited.

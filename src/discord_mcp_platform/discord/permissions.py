@@ -152,6 +152,8 @@ OPERATION_PERMISSIONS: dict[str, int] = {
     "message.pin": MANAGE_MESSAGES,
     "message.unpin": MANAGE_MESSAGES,
     "guild.incident_actions": MANAGE_GUILD,
+    "permissions.read": VIEW_CHANNEL,
+    "permissions.channel_read": VIEW_CHANNEL,
 }
 
 
